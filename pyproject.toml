@@ -1,0 +1,29 @@
+[project]
+name = "qr"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Matteo Verzotti",email = "matteo-alexandru.verzotti@s.unibuc.ro"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pillow (>=11.1.0,<12.0.0)",
+    "click (>=8.1.8,<9.0.0)",
+    "numpy (>=2.2.2,<3.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+description = "Project for Systems Architecture class"
+readme = "README.md"
+homepage = "https://github.com/voaidesr/QR"
+repository = "https://github.com/voaidesr/QR"
+keywords = ["qr"]
+
+[tool.poetry.scripts]
+qr = "qr.__main__:cli"
