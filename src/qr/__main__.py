@@ -16,7 +16,7 @@ def encode():
 @click.argument("image_path")
 def decode(image_path):
     """Decode a QR code"""
-    decode_qr(image_path)
+    print(decode_qr(image_path))
 
 cli.add_command(encode)
 cli.add_command(decode)
