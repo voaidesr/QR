@@ -30,7 +30,7 @@ def crop_qr(image: np.array) -> np.array:
         np.array: A 2D numpy array of shape (25, 25) representing the resized QR code,
                   where True represents black pixels and False represents white pixels.
     """
-    
+
     # Find the bounding box of the QR code (remove extra white space)
     rows = np.any(~image, axis=1)  # Find rows with black pixels
     cols = np.any(~image, axis=0)  # Find cols with black pixels
@@ -46,3 +46,39 @@ def crop_qr(image: np.array) -> np.array:
     resized_qr = np.array(im_resized) > 128 
 
     return resized_qr
+
+def is_finder_pattern(block: np.array) -> bool:
+    # Checks if a given 7x7 block in the QR matrix matches the finder pattern.
+    if block.shape != (7, 7):
+        return False
+
+    # Expected finder pattern structure
+    expected_pattern = np.array([
+        [1, 1, 1, 1, 1, 1, 1],
+        [1, 0, 0, 0, 0, 0, 1],
+        [1, 0, 1, 1, 1, 0, 1],
+        [1, 0, 1, 1, 1, 0, 1],
+        [1, 0, 1, 1, 1, 0, 1],
+        [1, 0, 0, 0, 0, 0, 1],
+        [1, 1, 1, 1, 1, 1, 1]
+    ])
+
+    return np.array_equal(block, expected_pattern)
+
+def detect_finder_patterns(qr_matrix: np.array):
+    # Detects the positions of finder patterns in the QR code.
+    pattern_positions = []  # Store (row, col) of detected finder pattern centers
+    rows, cols = qr_matrix.shape
+
+    for i in range(rows - 6):
+        for j in range(cols - 6):
+            block = qr_matrix[i:i+7, j:j+7]
+            if is_finder_pattern(~block):
+                pattern_positions.append((i + 3, j + 3))  # Store the center of the pattern
+
+    return pattern_positions
+
+def is_qr_code(qr_matrix: np.array) -> bool:
+    # Checks if the given matrix is likely a QR code by detecting finder patterns.
+    # A valid QR code must have exactly three finder patterns
+    return len(detect_finder_patterns(qr_matrix)) == 3
