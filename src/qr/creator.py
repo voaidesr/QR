@@ -26,17 +26,17 @@ class Encoder:
 
 #class that manages loading data streams into qr
 class QR_base:
-    def __init__(self):
-        self.qr_matrix = np.zeros((25, 25), dtype=int)
-        self.qr_matrix[2,3] = 1
-
-        self.fill_finder_patterns()
-
-    def __init__(self, matrix: np.array):
-        self.qr_matrix = matrix
+    def __init__(self, matrix=None):
+        if matrix is None:
+            self.qr_matrix = np.zeros((25, 25), dtype=int)
+            self.qr_matrix[2,3] = 1
+            self.fill_finder_patterns()
+        else:
+            self.qr_matrix = matrix
         
     def fill_finder_patterns(self):
-        f = open('./res/function_patterns.txt')
+        # f = open(pathlib.Path(__file__).parent / 'res' / 'function_patterns.txt')
+        f = open('function_patterns.txt')
         i = 0
         for line in f.readlines():
             j = 0
@@ -56,6 +56,7 @@ class QR_base:
 
 
 from qr.visualizer import QR_Visualizer
+import pathlib
 
 def test():
     base = QR_base()
