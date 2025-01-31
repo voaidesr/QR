@@ -54,13 +54,13 @@ def is_finder_pattern(block: np.array) -> bool:
 
     # Expected finder pattern structure
     expected_pattern = np.array([
-        [1, 1, 1, 1, 1, 1, 1],
-        [1, 0, 0, 0, 0, 0, 1],
-        [1, 0, 1, 1, 1, 0, 1],
-        [1, 0, 1, 1, 1, 0, 1],
-        [1, 0, 1, 1, 1, 0, 1],
-        [1, 0, 0, 0, 0, 0, 1],
-        [1, 1, 1, 1, 1, 1, 1]
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 1, 0],
+        [0, 1, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 1, 0],
+        [0, 1, 1, 1, 1, 1, 0],
+        [0, 0, 0, 0, 0, 0, 0]
     ])
 
     return np.array_equal(block, expected_pattern)
@@ -73,7 +73,7 @@ def detect_finder_patterns(qr_matrix: np.array):
     for i in range(rows - 6):
         for j in range(cols - 6):
             block = qr_matrix[i:i+7, j:j+7]
-            if is_finder_pattern(~block):
+            if is_finder_pattern(block):
                 pattern_positions.append((i + 3, j + 3))  # Store the center of the pattern
 
     return pattern_positions
