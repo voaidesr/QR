@@ -1,5 +1,6 @@
 from PIL import Image
 from qr.creator import QR_base
+import random
 
 # Constants
 WHITE = (255, 255, 255)
@@ -31,6 +32,15 @@ class QR_Visualizer:
             for j in range(matrix.shape[1]):
                 color_map = {0: BLACK, 1: WHITE, 2: BLUE, 3: RED, 4: NEUTRAL}
                 color = color_map.get(matrix[i][j])
+                
+                # if matrix[i][j] == 0:
+                #     self.fill_module(i, j, BLACK)
+                # elif matrix[i][j] == 1:
+                #     self.fill_module(i ,j, WHITE)
+                # else:
+                #     rnd_idx = random.randint(0,1)
+                #     self.fill_module(i, j, color_map[rnd_idx])
+
                 self.fill_module(i, j, color)
 
     def show_image(self) -> None:
