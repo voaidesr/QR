@@ -92,10 +92,14 @@ class QR_base:
         
         group_idx, col_idx, ch_idx = 0, 24, 0
         data_length = len(data)
-        print(data_length)
 
         while ch_idx < data_length and group_idx <= 12:
+            if group_idx == 9:
+                # at this group we encounter the vertical timing pattern. Here we skip 1 column:
+                col_idx -= 1 
+
             print(f'Filling group: {group_idx}, and col_idx at {col_idx}, and pos in data: {ch_idx}')
+
             if group_idx % 2 == 0:
                 #fill from bottom to top
                 for line in range(n-1, -1, -1):
@@ -151,17 +155,9 @@ def test():
 
     encoder = Encoder('Hello, World!')
     e = encoder.get_encoded()
-    print(e)
 
     base.load_stream_in_qr(e)
 
     interface = QR_Visualizer(base)
     interface.save_image()
-
-    # print(e[0:4])
-    # print(e[4:12])
-    # i = 12
-    # while i+8 < 232:
-    #     print(e[i:i+8])
-    #     i += 8
     
