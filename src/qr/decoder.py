@@ -170,7 +170,7 @@ def get_reserved_mask(version: int, size: int) -> np.array:
         centers = alignment_centers[version]
         for r in centers:
             for c in centers:
-                # Skip if overlapping with finder patterns.
+                # Skip if overlapping with finder patterns
                 if (r < 9 and c < 9) or (r < 9 and c >= size - 8) or (r >= size - 8 and c < 9):
                     continue
                 r0 = max(r - 2, 0)
@@ -205,13 +205,13 @@ def extract_data_bits(matrix: np.array, reserved: np.array) -> list:
     col = n - 1
     upward = True
     while col > 0:
-        if col == 6:  # Skip the timing pattern column.
+        if col == 6:  # Skip the timing pattern column
             col -= 1
         rows_range = range(n-1, -1, -1) if upward else range(n)
         for r in rows_range:
             for c in [col, col-1]:
                 if not reserved[r, c]:
-                    # black (False) → 1, white (True) → 0.
+                    # black (False) → 1, white (True) → 0
                     bit = 0 if matrix[r, c] else 1
                     bits.append(bit)
         upward = not upward
@@ -222,7 +222,7 @@ def bits_to_bytes(bits: list) -> bytearray:
     """
     Group bits into 8-bit codewords.
     """
-    # Ensure the number of bits is a multiple of 8 by padding with zeros.
+    # Ensure the number of bits is a multiple of 8 by padding with zeros
     while len(bits) % 8 != 0:
         bits.append(0)
     b = bytearray()
@@ -321,7 +321,7 @@ def decode_qr_matrix(matrix: np.array, version: int) -> str:
     else:
         return "Unsupported version for RS parameters."
     
-    # Use only the expected number of codewords.
+    # Use only the expected number of codewords
     codewords = codewords[:expected_codewords]
     
     try:
