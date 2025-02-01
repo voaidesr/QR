@@ -1,6 +1,6 @@
 import click
 from qr.encoder import test
-from qr.decoder import read_qr, crop_qr
+from qr.decoder import full_decode
 from qr.visualizer import QR_Visualizer
 from qr.encoder import QR_base
 from qr.gui import main
@@ -19,9 +19,11 @@ def encode():
 @click.argument("image_path")
 def decode(image_path):
     """Decode a QR code"""
-    cropped_qr = crop_qr(read_qr(image_path))
-    cropped_qr = QR_Visualizer(QR_base(cropped_qr))
-    cropped_qr.show_image()
+    print(full_decode(image_path))
+
+@click.command()
+def gui():
+    main()
 
 @click.command()
 def gui():
