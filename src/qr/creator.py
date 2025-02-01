@@ -3,6 +3,16 @@ import numpy as np
 
 #constants
 PRIMITIVE_POLY = 0x11d
+formats_string = {
+    0: '101010000010010',
+    1: '101000100100101',
+    2: '101111001111100',
+    3: '101101101001011',
+    4: '100010111111001',
+    5: '100000011001110',
+    6: '100111110010111',
+    7: '100101010100000'
+}
 
 
 #class for encoding data
@@ -222,7 +232,9 @@ class QR_base:
             group_idx += 1
 
     def apply_mask(self, mask_idx:int) -> None:
-        if mask_idx == 1:
+        if mask_idx == 0:
+            self.mask0()
+        elif mask_idx == 1:
             self.mask1()
         elif mask_idx == 2:
             self.mask2()
@@ -236,10 +248,8 @@ class QR_base:
             self.mask6()
         elif mask_idx == 7:
             self.mask7()
-        elif mask_idx == 8:
-            self.mask8()
         
-    def mask1(self)-> None:
+    def mask0(self)-> None:
             a = np.zeros((25,25), dtype=int)
             f = open('./res/function_patterns.txt')
             i = 0
@@ -261,7 +271,7 @@ class QR_base:
             self.qr_matrix[21,8] = 1
             self.qr_matrix[20,8] = 0
 
-    def mask2(self)-> None:
+    def mask1(self)-> None:
         a = np.zeros((25,25), dtype=int)
         f = open('./res/function_patterns.txt')
         i = 0
@@ -274,7 +284,7 @@ class QR_base:
             # Iterate through matrix
         for i in range(self.qr_matrix.shape[0]):
             for j in range(self.qr_matrix.shape[1]):
-                if self.qr_matrix[i,j] in [0,1] and j % 2 == 0 and a[i,j] == 4:
+                if self.qr_matrix[i,j] in [0,1] and i % 2 == 0 and a[i,j] == 4:
                     self.qr_matrix[i,j] = 1 - self.qr_matrix[i,j]
             self.qr_matrix[8,2] = 0
             self.qr_matrix[8,3] = 1
@@ -283,7 +293,7 @@ class QR_base:
             self.qr_matrix[21,8] = 1
             self.qr_matrix[20,8] = 1
 
-    def mask3(self)-> None:
+    def mask2(self)-> None:
         a = np.zeros((25,25), dtype=int)
         f = open('./res/function_patterns.txt')
         i = 0
@@ -305,7 +315,7 @@ class QR_base:
         self.qr_matrix[21,8] = 0
         self.qr_matrix[20,8] = 0
 
-    def mask4(self)-> None:
+    def mask3(self)-> None:
         a = np.zeros((25,25), dtype=int)
         f = open('./res/function_patterns.txt')
         i = 0
@@ -327,7 +337,7 @@ class QR_base:
         self.qr_matrix[21,8] = 0
         self.qr_matrix[20,8] = 1
 
-    def mask5(self)-> None:
+    def mask4(self)-> None:
         a = np.zeros((25,25), dtype=int)
         f = open('./res/function_patterns.txt')
         i = 0
@@ -349,7 +359,7 @@ class QR_base:
         self.qr_matrix[21,8] = 1
         self.qr_matrix[20,8] = 0
 
-    def mask6(self)-> None:
+    def mask5(self)-> None:
         a = np.zeros((25,25), dtype=int)
         f = open('./res/function_patterns.txt')
         i = 0
@@ -371,7 +381,7 @@ class QR_base:
         self.qr_matrix[21,8] = 1
         self.qr_matrix[20,8] = 1
 
-    def mask7(self)-> None:
+    def mask6(self)-> None:
         a = np.zeros((25,25), dtype=int)
         f = open('./res/function_patterns.txt')
         i = 0
@@ -393,7 +403,7 @@ class QR_base:
         self.qr_matrix[21,8] = 0
         self.qr_matrix[20,8] = 0
 
-    def mask8(self)-> None:
+    def mask7(self)-> None:
         a = np.zeros((25,25), dtype=int)
         f = open('./res/function_patterns.txt')
         i = 0
@@ -406,7 +416,7 @@ class QR_base:
             # Iterate through matrix
         for i in range(self.qr_matrix.shape[0]):
             for j in range(self.qr_matrix.shape[1]):
-                if self.qr_matrix[i,j] in [0,1] and (((i+j) % 2) + ((i*j) % 3)) == 0 and a[i,j] == 4:
+                if self.qr_matrix[i,j] in [0,1] and ((((i+j) % 2) + ((i*j) % 3)) % 2) == 0 and a[i,j] == 4:
                     self.qr_matrix[i,j] = 1 - self.qr_matrix[i,j]
         
         self.qr_matrix[8,2] = 1
@@ -461,20 +471,124 @@ class QR_base:
 
     def get_matrix(self) -> np.array:
         return self.qr_matrix
+    def best_mask(self):
+        # condition 1: row by row
+        p = 0
+        for i in range (0,25):
+            cnt = 1
+            for j in range (1,25):
+                if self.qr_matrix[i,j] == self.qr_matrix[i, j-1]:
+                    cnt += 1
+                else:
+                    if cnt >= 5:
+                        p += (cnt-5) + 3
+                    cnt = 1
+            if cnt >= 5:
+                p += (cnt-5) + 3
+        # column by column
+        for i in range (0,25):
+            cnt = 1
+            for j in range (1,25):
+                if self.qr_matrix[j - 1,i] == self.qr_matrix[j, i]:
+                    cnt += 1
+                else:
+                    if cnt >= 5:
+                        p += (cnt-5) + 3
+                    cnt = 1
+            if cnt >= 5:
+                p += (cnt - 5) + 3
+        cnt = 0
+        # condition 2: solid color blocks
+        for i in range(24):  # Rows 0 to 23 (inclusive)
+            for j in range(24):  # Columns 0 to 23 (inclusive)
+            # Check if all 4 cells in the 2x2 block are the same
+                if (
+                    self.qr_matrix[i][j] == self.qr_matrix[i][j+1] 
+                    and self.qr_matrix[i][j] == self.qr_matrix[i+1][j] 
+                    and self.qr_matrix[i][j] == self.qr_matrix[i+1][j+1]
+                ):
+                    p += 3
+
+        # condition 3: patterns of modules
+        pattern1 = [0,1,0,0,0,1,0,1,1,1,1]
+        pattern2 = [1,1,1,1,0,1,0,0,0,1,0]
+        for i in range(25):
+            for j in range (25):
+                cnt1 = 0
+                cnt2 = 0
+                for c in range (11):
+                    if j + c < 25:
+                        if self.qr_matrix[i,j + c] == pattern1[c]:
+                            cnt1 += 1
+                        if self.qr_matrix[i,j + c] == pattern2[c]:
+                            cnt2 += 1
+                        if cnt1 == 11 or cnt2 == 11:
+                            p += 40
+        for i in range(25):
+            for j in range (25):
+                cnt1 = 0
+                cnt2 = 0
+                for c in range (11):
+                    if j + c < 25:
+                        if self.qr_matrix[j + c,i] == pattern1[c]:
+                            cnt1 += 1
+                        if self.qr_matrix[j + c,i] == pattern2[c]:
+                            cnt2 += 1
+                        if cnt1 == 11 or cnt2 == 11:
+                            p += 40
+        # condition 4: no of blocks
+        total_modules = 625
+        white = 0
+        for i in range (25):
+            for j in range (25):
+                if self.qr_matrix[i,j] == 1:
+                    white += 1
+        black = total_modules - white
+        percent = int((black/total_modules) * 100)
+        if percent % 10 <= 5:
+            a = percent - percent % 10
+            b = a + 5
+            a = abs(a - 50)
+            b = abs(b - 50)
+            a = a // 5
+            b = b // 5
+            p += min(a,b) * 10
+        else:
+            a = percent - percent % 10 + 5
+            b = a + 5
+            a = abs(a - 50)
+            b = abs(b - 50)
+            a = a // 5
+            b = b // 5
+            p += min(a,b) * 10
+        return p
+    def calculate_best_mask(self):
+        l =[]
+        mat = self.qr_matrix.copy()
+        for i in range(8):
+            self.qr_matrix = mat.copy()
+            self.apply_mask(i)
+            self.apply_format_info(formats_string[i])
+            l.append(self.best_mask())
+        self.qr_matrix = mat.copy()
+        p = l.index(min(l))
+        self.apply_mask(p)
+        self.apply_format_info(formats_string[p])
+
+
+
+                
     
     
 from qr.visualizer import QR_Visualizer
 def test():
     base = QR_base()
-    encoder = Encoder('testQRWorking')
+    encoder = Encoder('youtube.com')
     encoded_data = encoder.get_encoded()
     base.load_stream_in_qr(encoded_data)
 
     interface = QR_Visualizer(base)
 
-    #for now apply mask 1 and format info for mask 1
-    base.apply_mask(1)  
-    base.apply_format_info('101010000010010')
+    base.calculate_best_mask()
 
     interface.save_image()
-    
