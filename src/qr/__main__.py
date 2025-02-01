@@ -1,6 +1,6 @@
 import click
 from qr.creator import test
-from qr.decoder import read_qr, crop_qr, is_qr_code
+from qr.decoder import full_decode
 from qr.visualizer import QR_Visualizer
 from qr.creator import QR_base
 
@@ -18,12 +18,7 @@ def encode():
 @click.argument("image_path")
 def decode(image_path):
     """Decode a QR code"""
-    cropped_qr = crop_qr(read_qr(image_path))
-    if not is_qr_code(cropped_qr):
-        print("Not a QR code!")
-    else:
-        cropped_qr = QR_Visualizer(QR_base(cropped_qr))
-        cropped_qr.save_image()
+    print(full_decode(image_path))
 
 cli.add_command(encode)
 cli.add_command(decode)
