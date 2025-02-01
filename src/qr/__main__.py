@@ -3,6 +3,7 @@ from qr.encoder import test
 from qr.decoder import read_qr, crop_qr
 from qr.visualizer import QR_Visualizer
 from qr.encoder import QR_base
+from qr.gui import main
 
 @click.group()
 def cli():
@@ -22,8 +23,13 @@ def decode(image_path):
     cropped_qr = QR_Visualizer(QR_base(cropped_qr))
     cropped_qr.show_image()
 
+@click.command()
+def gui():
+    main()
+
 cli.add_command(encode)
 cli.add_command(decode)
+cli.add_command(gui)
 
 if __name__ == "__main__":
     cli()
