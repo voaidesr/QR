@@ -1,8 +1,8 @@
 import click
-from qr.creator import test
+from qr.encoder import test
 from qr.decoder import read_qr, crop_qr
 from qr.visualizer import QR_Visualizer
-from qr.creator import QR_base
+from qr.encoder import QR_base
 
 @click.group()
 def cli():

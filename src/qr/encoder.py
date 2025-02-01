@@ -2,7 +2,6 @@ from PIL import Image
 import numpy as np
 
 #constants
-PRIMITIVE_POLY = 0x11d
 formats_string = {
     0: '101010000010010',
     1: '101000100100101',
@@ -36,12 +35,12 @@ class Encoder:
             self.gf_log[x] = i
             x <<= 1
             if x & 0x100:
-                x ^= PRIMITIVE_POLY
+                x ^= 0x11d
 
         for i in range(255, 512):
             self.gf_exp[i] = self.gf_exp[i - 255]
 
-    def gf_mult(self, x, y, primitive=PRIMITIVE_POLY, field_size=256):
+    def gf_mult(self, x, y, field_size=256):
         if x == 0 or y == 0:
             return 0
         return self.gf_exp[(self.gf_log[x] + self.gf_log[y]) % (field_size - 1)]
@@ -248,6 +247,9 @@ class QR_base:
             self.mask6()
         elif mask_idx == 7:
             self.mask7()
+
+        self.apply_format_info(formats_string[mask_idx])
+
         
     def mask0(self)-> None:
             a = np.zeros((25,25), dtype=int)
@@ -264,12 +266,6 @@ class QR_base:
                 for j in range(self.qr_matrix.shape[1]):
                     if self.qr_matrix[i,j] in [0,1] and (i + j) % 2 == 0 and a[i,j] == 4:
                         self.qr_matrix[i,j] = 1 - self.qr_matrix[i,j]
-            self.qr_matrix[8,2] = 0
-            self.qr_matrix[8,3] = 1
-            self.qr_matrix[8,4] = 0
-            self.qr_matrix[22,8] = 0
-            self.qr_matrix[21,8] = 1
-            self.qr_matrix[20,8] = 0
 
     def mask1(self)-> None:
         a = np.zeros((25,25), dtype=int)
@@ -286,12 +282,7 @@ class QR_base:
             for j in range(self.qr_matrix.shape[1]):
                 if self.qr_matrix[i,j] in [0,1] and i % 2 == 0 and a[i,j] == 4:
                     self.qr_matrix[i,j] = 1 - self.qr_matrix[i,j]
-            self.qr_matrix[8,2] = 0
-            self.qr_matrix[8,3] = 1
-            self.qr_matrix[8,4] = 1
-            self.qr_matrix[22,8] = 0
-            self.qr_matrix[21,8] = 1
-            self.qr_matrix[20,8] = 1
+            
 
     def mask2(self)-> None:
         a = np.zeros((25,25), dtype=int)
@@ -308,12 +299,7 @@ class QR_base:
             for j in range(self.qr_matrix.shape[1]):
                 if self.qr_matrix[i,j] in [0,1] and j % 3 == 0 and a[i,j] == 4:
                     self.qr_matrix[i,j] = 1 - self.qr_matrix[i,j]
-        self.qr_matrix[8,2] = 0
-        self.qr_matrix[8,3] = 0
-        self.qr_matrix[8,4] = 0
-        self.qr_matrix[22,8] = 0
-        self.qr_matrix[21,8] = 0
-        self.qr_matrix[20,8] = 0
+        
 
     def mask3(self)-> None:
         a = np.zeros((25,25), dtype=int)
@@ -330,12 +316,7 @@ class QR_base:
             for j in range(self.qr_matrix.shape[1]):
                 if self.qr_matrix[i,j] in [0,1] and (i+j) % 3 == 0 and a[i,j] == 4:
                     self.qr_matrix[i,j] = 1 - self.qr_matrix[i,j]
-        self.qr_matrix[8,2] = 0
-        self.qr_matrix[8,3] = 0
-        self.qr_matrix[8,4] = 1
-        self.qr_matrix[22,8] = 0
-        self.qr_matrix[21,8] = 0
-        self.qr_matrix[20,8] = 1
+        
 
     def mask4(self)-> None:
         a = np.zeros((25,25), dtype=int)
@@ -352,12 +333,7 @@ class QR_base:
             for j in range(self.qr_matrix.shape[1]):
                 if self.qr_matrix[i,j] in [0,1] and ((int(i/2) + int(j/3)) % 2) == 0 and a[i,j] == 4:
                     self.qr_matrix[i,j] = 1 - self.qr_matrix[i,j]
-        self.qr_matrix[8,2] = 1
-        self.qr_matrix[8,3] = 1
-        self.qr_matrix[8,4] = 0
-        self.qr_matrix[22,8] = 1
-        self.qr_matrix[21,8] = 1
-        self.qr_matrix[20,8] = 0
+        
 
     def mask5(self)-> None:
         a = np.zeros((25,25), dtype=int)
@@ -374,12 +350,7 @@ class QR_base:
             for j in range(self.qr_matrix.shape[1]):
                 if self.qr_matrix[i,j] in [0,1] and (((i*j) % 2) + ((i*j) % 3)) == 0 and a[i,j] == 4:
                     self.qr_matrix[i,j] = 1 - self.qr_matrix[i,j]
-        self.qr_matrix[8,2] = 1
-        self.qr_matrix[8,3] = 1
-        self.qr_matrix[8,4] = 1
-        self.qr_matrix[22,8] = 1
-        self.qr_matrix[21,8] = 1
-        self.qr_matrix[20,8] = 1
+        
 
     def mask6(self)-> None:
         a = np.zeros((25,25), dtype=int)
@@ -396,12 +367,7 @@ class QR_base:
             for j in range(self.qr_matrix.shape[1]):
                 if self.qr_matrix[i,j] in [0,1] and ((((i*j) % 2) + ((i*j) % 3))%2) == 0 and a[i,j] == 4:
                     self.qr_matrix[i,j] = 1 - self.qr_matrix[i,j]
-        self.qr_matrix[8,2] = 1
-        self.qr_matrix[8,3] = 0
-        self.qr_matrix[8,4] = 0
-        self.qr_matrix[22,8] = 1
-        self.qr_matrix[21,8] = 0
-        self.qr_matrix[20,8] = 0
+        
 
     def mask7(self)-> None:
         a = np.zeros((25,25), dtype=int)
@@ -419,12 +385,6 @@ class QR_base:
                 if self.qr_matrix[i,j] in [0,1] and ((((i+j) % 2) + ((i*j) % 3)) % 2) == 0 and a[i,j] == 4:
                     self.qr_matrix[i,j] = 1 - self.qr_matrix[i,j]
         
-        self.qr_matrix[8,2] = 1
-        self.qr_matrix[8,3] = 0
-        self.qr_matrix[8,4] = 1
-        self.qr_matrix[22,8] = 1
-        self.qr_matrix[21,8] = 0
-        self.qr_matrix[20,8] = 1
 
     def apply_format_info(self, format_string: str)-> None:
         if len(format_string) != 15: 
@@ -471,9 +431,10 @@ class QR_base:
 
     def get_matrix(self) -> np.array:
         return self.qr_matrix
-    def best_mask(self):
+    
+    def best_mask(self) -> int:
         # condition 1: row by row
-        p = 0
+        penalty = 0
         for i in range (0,25):
             cnt = 1
             for j in range (1,25):
@@ -481,10 +442,10 @@ class QR_base:
                     cnt += 1
                 else:
                     if cnt >= 5:
-                        p += (cnt-5) + 3
+                        penalty += (cnt-5) + 3
                     cnt = 1
             if cnt >= 5:
-                p += (cnt-5) + 3
+                penalty += (cnt-5) + 3
         # column by column
         for i in range (0,25):
             cnt = 1
@@ -493,10 +454,10 @@ class QR_base:
                     cnt += 1
                 else:
                     if cnt >= 5:
-                        p += (cnt-5) + 3
+                        penalty += (cnt-5) + 3
                     cnt = 1
             if cnt >= 5:
-                p += (cnt - 5) + 3
+                penalty += (cnt - 5) + 3
         cnt = 0
         # condition 2: solid color blocks
         for i in range(24):  # Rows 0 to 23 (inclusive)
@@ -507,7 +468,7 @@ class QR_base:
                     and self.qr_matrix[i][j] == self.qr_matrix[i+1][j] 
                     and self.qr_matrix[i][j] == self.qr_matrix[i+1][j+1]
                 ):
-                    p += 3
+                    penalty += 3
 
         # condition 3: patterns of modules
         pattern1 = [0,1,0,0,0,1,0,1,1,1,1]
@@ -523,7 +484,7 @@ class QR_base:
                         if self.qr_matrix[i,j + c] == pattern2[c]:
                             cnt2 += 1
                         if cnt1 == 11 or cnt2 == 11:
-                            p += 40
+                            penalty += 40
         for i in range(25):
             for j in range (25):
                 cnt1 = 0
@@ -535,7 +496,8 @@ class QR_base:
                         if self.qr_matrix[j + c,i] == pattern2[c]:
                             cnt2 += 1
                         if cnt1 == 11 or cnt2 == 11:
-                            p += 40
+                            penalty += 40
+
         # condition 4: no of blocks
         total_modules = 625
         white = 0
@@ -552,7 +514,7 @@ class QR_base:
             b = abs(b - 50)
             a = a // 5
             b = b // 5
-            p += min(a,b) * 10
+            penalty += min(a,b) * 10
         else:
             a = percent - percent % 10 + 5
             b = a + 5
@@ -560,35 +522,32 @@ class QR_base:
             b = abs(b - 50)
             a = a // 5
             b = b // 5
-            p += min(a,b) * 10
-        return p
-    def calculate_best_mask(self):
+            penalty += min(a,b) * 10
+
+        return penalty
+    
+    def apply_best_mask(self) -> int:
         l =[]
         mat = self.qr_matrix.copy()
         for i in range(8):
             self.qr_matrix = mat.copy()
             self.apply_mask(i)
-            self.apply_format_info(formats_string[i])
             l.append(self.best_mask())
+        
         self.qr_matrix = mat.copy()
-        p = l.index(min(l))
-        self.apply_mask(p)
-        self.apply_format_info(formats_string[p])
+        best_mask_idx = l.index(min(l))
+        self.apply_mask(best_mask_idx)
+        return best_mask_idx
 
-
-
-                
-    
     
 from qr.visualizer import QR_Visualizer
 def test():
     base = QR_base()
-    encoder = Encoder('youtube.com')
+    encoder = Encoder('Petru si Florin')
     encoded_data = encoder.get_encoded()
     base.load_stream_in_qr(encoded_data)
 
     interface = QR_Visualizer(base)
 
-    base.calculate_best_mask()
-
+    base.apply_best_mask()
     interface.save_image()

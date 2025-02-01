@@ -1,5 +1,5 @@
 from PIL import Image
-from qr.creator import QR_base
+from qr.encoder import QR_base
 import random
 
 # Constants
