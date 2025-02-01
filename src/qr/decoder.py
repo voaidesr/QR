@@ -6,7 +6,7 @@ from reedsolo import RSCodec, ReedSolomonError
 rs_params = {
     1: (26, 7),
     2: (44, 10),
-    3: (70, 15),
+    3: (70, 15)
 }
 
 # Alignment pattern centers for versions 2 to 3
@@ -124,6 +124,7 @@ def extract_format_info(matrix: np.array) -> dict:
 def mask_condition(i: int, j: int, mask_pattern: int) -> bool:
     # Return True if the mask condition is met for the given mask pattern
     # taken from here https://commons.wikimedia.org/wiki/File:QR_Code_Mask_Patterns.svg
+    # TODO: change to switch statement
     if mask_pattern == 0:
         return (i + j) % 2 == 0
     elif mask_pattern == 1:
