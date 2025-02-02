@@ -1,5 +1,6 @@
 import numpy as np
 from PIL import Image
+import cv2
 from reedsolo import RSCodec, ReedSolomonError
 
 # RS parameters for error correction level L, versions 1-3
@@ -15,32 +16,80 @@ alignment_centers = {
     3: [6, 22]
 }
 
-def read_qr(image_path: str) -> np.array:
+# https://stackoverflow.com/questions/60359398/python-detect-a-qr-code-from-an-image-and-crop-using-opencv
+def find_qr_in_image(image_path: str) -> np.array:
     """
-    Decodes an image to a boolean NumPy array.
+    Detects and extracts the QR code from an image.
+    Args:
+        image_path (str): The file path to the input image.
+    Returns:
+        np.array: The extracted QR code region of interest (ROI) as an image array.
+    This function performs the following steps:
+    1. Loads the image from the specified path.
+    2. Converts the image to grayscale.
+    3. Applies Gaussian blur to reduce noise.
+    4. Uses Otsu's thresholding to convert the image to a binary image.
+    5. Applies morphological closing to close small gaps in the binary image.
+    6. Finds contours in the binary image.
+    7. Filters contours to identify potential QR code regions based on contour properties.
+    """
+    image = cv2.imread(image_path)
 
-    Parameters:
-    image_path (str): The path to the image file.
-    """
-    im = Image.open(image_path).convert('RGB') # Ensure it's in RGB mode
-    np_array = np.array(im)
-    
-    # Convert rgb values to True and False
-    return np.all(np_array == [255, 255, 255], axis=-1) 
+    # Convert to grayscale
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-# TODO: In the future, fina a way to make this function more robust
-#       for example, the case where the code can be surrounded by black pixels
-def crop_qr(image: np.array) -> np.array:
-    """
-    Crop extra white space around the QR code.
-    """
-    rows = np.any(~image, axis=1)
-    cols = np.any(~image, axis=0)
-    if not np.any(rows) or not np.any(cols):
-        return image  # Nothing to crop
-    rmin, rmax = np.where(rows)[0][[0, -1]]
-    cmin, cmax = np.where(cols)[0][[0, -1]]
-    return image[rmin:rmax+1, cmin:cmax+1]
+    # Apply Gaussian blur
+    # This helps remove high-frequency noise and retains the low-frequency components.
+    blur = cv2.GaussianBlur(gray, (9,9), 0)
+
+    # Apply Otsu's threshold
+    # https://en.wikipedia.org/wiki/Otsu%27s_method
+    # Converts the blurred grayscale image into a binary (black and white) image.
+    # cv2.THRESH_BINARY_INV inverts the colors (QR codes are typically black on white).
+    # cv2.THRESH_OTSU automatically determines the best threshold value to separate the QR code from the background.
+    # Author's note: This is magic to me, but it's 2AM and I don't have the energy to get into frequency domain filtering.
+    thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+
+    # Morph close
+    # https://en.wikipedia.org/wiki/Closing_(morphology)
+    # I regret getting into this
+    # Applies morphological closing (cv2.MORPH_CLOSE), which fills small holes and connects nearby white regions.
+    # This step helps in making QR codes more solid and connected for better contour detection.
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5,5))
+    close = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=2)
+
+    # Find contours and filter for QR code
+    # cv2.RETR_EXTERNAL retrieves only the outermost contours (ignoring nested ones).
+    # cv2.CHAIN_APPROX_SIMPLE reduces unnecessary points in the contour representation.
+    cnts = cv2.findContours(close, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
+
+    # Iterates through the detected contours.
+    for c in cnts:
+        # Computes the perimeter of each contour.
+        peri = cv2.arcLength(c, True)
+
+        # Approximates the contour shape, reducing unnecessary points.
+        approx = cv2.approxPolyDP(c, 0.04 * peri, True)
+
+        # Extracts the bounding box
+        x, y, w, h = cv2.boundingRect(approx)
+        area = cv2.contourArea(c)
+        ar = w / float(h)
+
+        # If the contour meets these conditions, it is assumed to be a QR code.
+        # TODO: Add more conditions to improve accuracy.
+        #       For example, check for the presence of finder patterns
+        if len(approx) == 4 and area > 1000 and (ar > .85 and ar < 1.3):
+            # cv2.imshow('thresh', thresh)
+            # cv2.imshow('close', close)
+            # cv2.rectangle(image, (x, y), (x + w, y + h), (36,255,12), 3)
+            # cv2.imshow('image', image)
+            # cv2.waitKey()
+            
+            return gray[y:y+h, x:x+w]
+
+    return None
+
 
 # Generalised resizing
 def rescale_to_grid(image: np.array, grid_size: int) -> np.array:
@@ -82,18 +131,19 @@ def is_finder_pattern(block: np.array) -> bool:
     ], dtype=bool)
     return np.array_equal(block, expected)
 
-def detect_finder_patterns(matrix: np.array):
+def detect_finder_patterns(matrix: np.array) -> np.array:
     """
     Slide a 7x7 window over the matrix to locate finder patterns.
     Returns a list with the center positions (row, col) of the found finder patterns.
     """
-    positions = []
+    positions = np.array([], dtype=int).reshape(0, 2)
     n = matrix.shape[0]
     for i in range(n - 6):
         for j in range(n - 6):
             block = matrix[i:i+7, j:j+7]
             if is_finder_pattern(block):
-                positions.append((i + 3, j + 3))
+                positions = np.vstack([positions, [i+3, j+3]])
+
     return positions
 
 def is_qr_code(matrix: np.array) -> bool:
@@ -128,7 +178,7 @@ def mask_condition(i: int, j: int, mask_pattern: int) -> bool:
     if mask_pattern == 0:
         return (i + j) % 2 == 0
     elif mask_pattern == 1:
-        return i % 2 == 0 
+        return i % 2 == 0
     elif mask_pattern == 2:
         return j % 3 == 0
     elif mask_pattern == 3:
@@ -166,7 +216,7 @@ def get_reserved_mask(version: int, size: int) -> np.array:
     reserved[8, 0:8] = True
     reserved[0:8, 8] = True
 
-    # Alignment patterns (for versions >= 2) 
+    # Alignment patterns (for versions >= 2)
     if version >= 2 and version in alignment_centers:
         centers = alignment_centers[version]
         for r in centers:
@@ -246,8 +296,8 @@ def decode_data(codewords: bytes) -> str:
     mode = bit_str[0:4]
 
     # Byte mode
-    if mode == '0100':  
-        count = int(bit_str[4:12], 2) # the number of bytes in the message 
+    if mode == '0100':
+        count = int(bit_str[4:12], 2) # the number of bytes in the message
         data_bits = bit_str[12:12 + count * 8]
         data = bytearray()
         for i in range(0, len(data_bits), 8):
@@ -256,9 +306,9 @@ def decode_data(codewords: bytes) -> str:
             return data.decode('utf-8')
         except UnicodeDecodeError:
             return data.decode('latin1')
-    
+
     # Alphanumeric mode
-    elif mode == '0010':  
+    elif mode == '0010':
         count = int(bit_str[4:13], 2) # char count
         table = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:" # each alnum character is indexed in this table (0-44)
         result = ""
@@ -268,7 +318,7 @@ def decode_data(codewords: bytes) -> str:
             result += table[num // 45] + table[num % 45]
             bits_idx += 11
         return result[:count]
-    
+
     # Numeric mode
     elif mode == '0001':
         count = int(bit_str[4:14], 2) # digit count
@@ -316,15 +366,15 @@ def decode_qr_matrix(matrix: np.array, version: int) -> str:
     unmasked_matrix = unmask_qr(matrix, mask_pattern, reserved)
     data_bits = extract_data_bits(unmasked_matrix, reserved)
     codewords = bits_to_bytes(data_bits)
-    
+
     if version in rs_params:
         expected_codewords, ecc_count = rs_params[version]
     else:
         return "Unsupported version for RS parameters."
-    
+
     # Use only the expected number of codewords
     codewords = codewords[:expected_codewords]
-    
+
     try:
         rsc = RSCodec(ecc_count)
         decoded = rsc.decode(bytes(codewords))
@@ -332,10 +382,10 @@ def decode_qr_matrix(matrix: np.array, version: int) -> str:
         corrected = decoded[0]
     except ReedSolomonError as e:
         return "Error in RS decoding: " + str(e)
-    
+
     return decode_data(corrected)
 
-def full_decode(image_path: str) -> str:
+def full_decode(image: str) -> str:
     """
     Complete pipeline:
       - Read the image.
@@ -345,13 +395,11 @@ def full_decode(image_path: str) -> str:
       - Verify it appears to be a QR code.
       - Decode the QR matrix.
     """
-    raw = read_qr(image_path)
-    cropped = crop_qr(raw)
-    version = detect_version(cropped)
+    version = detect_version(image)
     if version is None:
         return "Could not detect QR code version."
     grid_size = 21 + 4 * (version - 1)
-    module_matrix = rescale_to_grid(cropped, grid_size)
+    module_matrix = rescale_to_grid(image, grid_size)
     if not is_qr_code(module_matrix):
         return "Not a valid QR code!"
     return decode_qr_matrix(module_matrix, version)

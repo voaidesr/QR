@@ -1,6 +1,6 @@
 import click
+import qr.decoder
 from qr.encoder import test
-from qr.decoder import full_decode
 from qr.visualizer import QR_Visualizer
 from qr.encoder import QR_base
 from qr.gui import main
@@ -19,7 +19,11 @@ def encode():
 @click.argument("image_path")
 def decode(image_path):
     """Decode a QR code"""
-    print(full_decode(image_path))
+    qrCode = qr.decoder.find_qr_in_image(image_path)
+    qrBase = QR_base(qrCode)
+
+    qrVis = QR_Visualizer(qrBase)
+    qrVis.show_image() # BUG: Throws an error
 
 @click.command()
 def gui():
