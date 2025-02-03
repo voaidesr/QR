@@ -20,6 +20,7 @@ def encode():
 def decode(image_path):
     """Decode a QR code"""
     qrCode = qr.decoder.find_qr_in_image(image_path)
+    print(qr.decoder.full_decode(qrCode))
     qrBase = QR_base(qrCode)
 
     qrVis = QR_Visualizer(qrBase)
