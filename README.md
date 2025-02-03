@@ -33,7 +33,10 @@ poetry run qr gui
 ```
 
 ## Preview
-![image](https://github.com/user-attachments/assets/fe9206a1-1237-4c06-9d8c-3e9e0ba7aa52 | width=100)
+![Screenshot from 2025-02-03 17-10-16](https://github.com/user-attachments/assets/a245dee3-b46f-4b80-8245-a45cafebadad)
+
+
+
 
 ## Notes
 
