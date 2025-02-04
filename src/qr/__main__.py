@@ -20,10 +20,9 @@ def encode():
 def decode(image_path):
     """Decode a QR code"""
     qrCode = qr.decoder.find_qr_in_image(image_path)
-    qrBase = QR_base(qrCode)
 
-    qrVis = QR_Visualizer(qrBase)
-    qrVis.show_image() # BUG: Throws an error
+    print(qr.decoder.full_decode(qrCode))
+
 
 @click.command()
 def gui():

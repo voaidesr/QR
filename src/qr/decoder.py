@@ -2,6 +2,8 @@ import numpy as np
 from PIL import Image
 import cv2
 from reedsolo import RSCodec, ReedSolomonError
+from qr.encoder import QR_base
+from qr.visualizer import QR_Visualizer
 
 # RS parameters for error correction level L, versions 1-3
 rs_params = {
@@ -85,8 +87,9 @@ def find_qr_in_image(image_path: str) -> np.array:
             # cv2.rectangle(image, (x, y), (x + w, y + h), (36,255,12), 3)
             # cv2.imshow('image', image)
             # cv2.waitKey()
-            
-            return gray[y:y+h, x:x+w]
+            cv2.imwrite('qr_code.png', gray[y:y+h, x:x+w])
+
+            return np.asarray(gray[y:y+h, x:x+w])
 
     return None
 
@@ -385,7 +388,7 @@ def decode_qr_matrix(matrix: np.array, version: int) -> str:
 
     return decode_data(corrected)
 
-def full_decode(image: str) -> str:
+def full_decode(image: np.array) -> str:
     """
     Complete pipeline:
       - Read the image.
