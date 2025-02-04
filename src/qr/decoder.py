@@ -57,13 +57,16 @@ def find_qr_in_image(image_path: str) -> np.array:
     # I regret getting into this
     # Applies morphological closing (cv2.MORPH_CLOSE), which fills small holes and connects nearby white regions.
     # This step helps in making QR codes more solid and connected for better contour detection.
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5,5))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (11, 11)) # modify kernel in order to get better morphological closing
     close = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=2)
 
     # Find contours and filter for QR code
     # cv2.RETR_EXTERNAL retrieves only the outermost contours (ignoring nested ones).
     # cv2.CHAIN_APPROX_SIMPLE reduces unnecessary points in the contour representation.
     cnts = cv2.findContours(close, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
+
+    # candidate contours
+    candidates = []
 
     # Iterates through the detected contours.
     for c in cnts:
@@ -74,23 +77,41 @@ def find_qr_in_image(image_path: str) -> np.array:
         approx = cv2.approxPolyDP(c, 0.04 * peri, True)
 
         # Extracts the bounding box
-        x, y, w, h = cv2.boundingRect(approx)
-        area = cv2.contourArea(c)
-        ar = w / float(h)
+        if len(approx) == 4:
+            x, y, w, h = cv2.boundingRect(approx)
+            area = cv2.contourArea(c)
+            ar = w / float(h)
+
+            # possible qr codes
+            if area > 1000 and (0.7 < ar < 1.4):
+                candidates.append((x, y, w, h))
+
+    for (x, y, w, h) in candidates:
+        candidate_roi = gray[y:y+h, x:x+w]
+
+        # cv2.rectangle(image, (x, y), (x + w, y + h), (36,255,12), 3)
+        # cv2.imshow('image', image)
+        # cv2.waitKey()
+
+        if detect_version(candidate_roi) is None:
+            print("No QR code detected")
+            continue
+        else:
+            return candidate_roi
+       
 
         # If the contour meets these conditions, it is assumed to be a QR code.
         # TODO: Add more conditions to improve accuracy.
         #       For example, check for the presence of finder patterns
-        if len(approx) == 4 and area > 1000 and (ar > .85 and ar < 1.3):
-            # cv2.imshow('thresh', thresh)
-            # cv2.imshow('close', close)
+        # if len(approx) == 4 and area > 1000 and (ar > .85 and ar < 1.3):
+        #     # cv2.imshow('thresh', thresh)
+        #     # cv2.imshow('close', close)
             # cv2.rectangle(image, (x, y), (x + w, y + h), (36,255,12), 3)
             # cv2.imshow('image', image)
             # cv2.waitKey()
-            cv2.imwrite('qr_code.png', gray[y:y+h, x:x+w])
+        #     cv2.imwrite('qr_code.png', gray[y:y+h, x:x+w])
 
-            return np.asarray(gray[y:y+h, x:x+w])
-
+        #     return np.asarray(gray[y:y+h, x:x+w])
     return None
 
 
@@ -108,6 +129,8 @@ def detect_version(image: np.array) -> int:
     Try candidate versions (1–3) by rescaling and checking for three finder patterns.
     Returns the first matching version or None if not detected.
     """
+    if image is None:
+        return None
     for version in range(1, 4):
         grid_size = 21 + 4 * (version - 1)
         grid = rescale_to_grid(image, grid_size)
