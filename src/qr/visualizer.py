@@ -28,8 +28,8 @@ class QR_Visualizer:
 
     def write_image(self) -> None:
         matrix = self.qr.get_matrix()
-        for i in range(matrix.shape[0]):
-            for j in range(matrix.shape[1]):
+        for i in range(25):
+            for j in range(25):
                 color_map = {0: BLACK, 1: WHITE, 2: BLUE, 3: RED, 4: NEUTRAL}
                 color = color_map.get(matrix[i][j])
                 self.fill_module(i, j, color)

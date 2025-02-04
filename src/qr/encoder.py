@@ -535,15 +535,16 @@ class QR_base:
             l.append(self.best_mask())
         
         self.qr_matrix = mat.copy()
-        best_mask_idx = l.index(min(l))
+        lowest = min(l)
+        best_mask_idx = l.index(lowest)
         self.apply_mask(best_mask_idx)
-        return best_mask_idx
+        return (best_mask_idx, lowest)
 
     
 from qr.visualizer import QR_Visualizer
 def test():
     base = QR_base()
-    encoder = Encoder('Petru si Florin')
+    encoder = Encoder('cs.unibuc.ro/~crusu/asc/')
     encoded_data = encoder.get_encoded()
     base.load_stream_in_qr(encoded_data)
 
@@ -551,3 +552,24 @@ def test():
 
     base.apply_best_mask()
     interface.save_image()
+
+
+def generateQR(text: str) ->None:
+    if len(text) >= 27:
+        return None
+    
+    base = QR_base()
+    encoder = Encoder(text)
+
+    encoded = encoder.get_encoded()
+    base.load_stream_in_qr(encoded)
+    mask = base.apply_best_mask()
+
+    interface = QR_Visualizer(base)
+    interface.save_image()
+
+    res = {}
+    res['mask'] = mask[0]
+    res['mask-penalty'] = mask[1]
+    return res
+
