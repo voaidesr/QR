@@ -178,24 +178,25 @@ def mask_condition(i: int, j: int, mask_pattern: int) -> bool:
     # Return True if the mask condition is met for the given mask pattern
     # taken from here https://commons.wikimedia.org/wiki/File:QR_Code_Mask_Patterns.svg
     # TODO: change to switch statement
-    if mask_pattern == 0:
-        return (i + j) % 2 == 0
-    elif mask_pattern == 1:
-        return i % 2 == 0
-    elif mask_pattern == 2:
-        return j % 3 == 0
-    elif mask_pattern == 3:
-        return (i + j) % 3 == 0
-    elif mask_pattern == 4:
-        return ((i // 2) + (j // 3)) % 2 == 0
-    elif mask_pattern == 5:
-        return (i * j) % 2 + (i * j) % 3 == 0
-    elif mask_pattern == 6:
-        return ((i * j) % 2 + (i * j) % 3) % 2 == 0
-    elif mask_pattern == 7:
-        return ((i + j) % 2 + (i * j) % 3) % 2 == 0
-    else:
-        return False
+    match mask_pattern:
+        case 0:
+            return (i + j) % 2 == 0
+        case 1:
+            return i % 2 == 0
+        case 2:
+            return j % 3 == 0
+        case 3:
+            return (i + j) % 3 == 0
+        case 4:
+            return ((i // 2) + (j // 3)) % 2 == 0
+        case 5:
+            return (i * j) % 2 + (i * j) % 3 == 0
+        case 6:
+            return ((i * j) % 2 + (i * j) % 3) % 2 == 0
+        case 7:
+            return ((i + j) % 2 + (i * j) % 3) % 2 == 0
+        case _:
+            return False
 
 def get_reserved_mask(version: int, size: int) -> np.array:
     """
