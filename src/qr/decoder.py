@@ -99,7 +99,7 @@ def rescale_to_grid(image: np.array, grid_size: int) -> np.array:
     """
     Rescale the cropped image to a grid of the given size using nearest-neighbor.
     """
-    im = Image.fromarray(image.astype(np.uint8) * 255)
+    im = Image.fromarray(image.astype(np.uint8))
     im_resized = im.resize((grid_size, grid_size), Image.NEAREST)
     return np.array(im_resized) > 128
 
