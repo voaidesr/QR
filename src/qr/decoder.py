@@ -2,21 +2,7 @@ import numpy as np
 from PIL import Image
 import cv2
 from reedsolo import RSCodec, ReedSolomonError
-from qr.encoder import QR_base
-from qr.visualizer import QR_Visualizer
-
-# RS parameters for error correction level L, versions 1-3
-rs_params = {
-    1: (26, 7),
-    2: (44, 10),
-    3: (70, 15)
-}
-
-# Alignment pattern centers for versions 2 to 3
-alignment_centers = {
-    2: [6, 18],
-    3: [6, 22]
-}
+import qr.constants as constants
 
 # https://stackoverflow.com/questions/60359398/python-detect-a-qr-code-from-an-image-and-crop-using-opencv
 def find_qr_in_image(image_path: str) -> np.array:
@@ -61,9 +47,9 @@ def find_qr_in_image(image_path: str) -> np.array:
     close = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=2)
 
     # Find contours and filter for QR code
-    # cv2.RETR_EXTERNAL retrieves only the outermost contours (ignoring nested ones).
+    # cv2.RETR_TREE retrieves all of the contours and reconstructs a full hierarchy of nested contours.
     # cv2.CHAIN_APPROX_SIMPLE reduces unnecessary points in the contour representation.
-    cnts = cv2.findContours(close, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
+    cnts = cv2.findContours(close, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[0]
 
     # candidate contours
     candidates = []
@@ -88,30 +74,17 @@ def find_qr_in_image(image_path: str) -> np.array:
 
     for (x, y, w, h) in candidates:
         candidate_roi = gray[y:y+h, x:x+w]
-
-        # cv2.rectangle(image, (x, y), (x + w, y + h), (36,255,12), 3)
+        cv2.rectangle(image, (x, y), (x + w, y + h), (36,255,12), 3)
         # cv2.imshow('image', image)
+        # cv2.imshow('thresh', thresh)
+        # cv2.imshow('close', close)
+        # cv2.imshow('candidate_roi', candidate_roi)
         # cv2.waitKey()
 
-        if detect_version(candidate_roi) is None:
-            print("No QR code detected")
-            continue
-        else:
+        if detect_version(candidate_roi) is not None:
             return candidate_roi
-       
-
-        # If the contour meets these conditions, it is assumed to be a QR code.
-        # TODO: Add more conditions to improve accuracy.
-        #       For example, check for the presence of finder patterns
-        # if len(approx) == 4 and area > 1000 and (ar > .85 and ar < 1.3):
-        #     # cv2.imshow('thresh', thresh)
-        #     # cv2.imshow('close', close)
-            # cv2.rectangle(image, (x, y), (x + w, y + h), (36,255,12), 3)
-            # cv2.imshow('image', image)
-            # cv2.waitKey()
-        #     cv2.imwrite('qr_code.png', gray[y:y+h, x:x+w])
-
-        #     return np.asarray(gray[y:y+h, x:x+w])
+    
+    print("No QR code found.")
     return None
 
 # temporary
@@ -130,7 +103,7 @@ def detect_and_draw_qr(image_path: str, draw_rectangle: bool = False) -> tuple:
     thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9, 9))
     close = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=2)
-    cnts = cv2.findContours(close, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
+    cnts = cv2.findContours(close, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[0]
     candidates = []
     for c in cnts:
         peri = cv2.arcLength(c, True)
@@ -168,6 +141,7 @@ def detect_version(image: np.array) -> int:
     for version in range(1, 4):
         grid_size = 21 + 4 * (version - 1)
         grid = rescale_to_grid(image, grid_size)
+
         if is_qr_code(grid):
             return version
     return None
@@ -210,7 +184,7 @@ def is_qr_code(matrix: np.array) -> bool:
     """
     Verify if the 3 finder patterns are located.
     """
-    return len(detect_finder_patterns(matrix)) == 3
+    return len(detect_finder_patterns(matrix)) >= 1
 
 # Fromat Segment
 def extract_format_info(matrix: np.array) -> dict:
@@ -278,8 +252,8 @@ def get_reserved_mask(version: int, size: int) -> np.array:
     reserved[0:8, 8] = True
 
     # Alignment patterns (for versions >= 2)
-    if version >= 2 and version in alignment_centers:
-        centers = alignment_centers[version]
+    if version >= 2 and version in constants.ALIGNMENT_CENTERS:
+        centers = constants.ALIGNMENT_CENTERS[version]
         for r in centers:
             for c in centers:
                 # Skip if overlapping with finder patterns
@@ -428,8 +402,8 @@ def decode_qr_matrix(matrix: np.array, version: int) -> str:
     data_bits = extract_data_bits(unmasked_matrix, reserved)
     codewords = bits_to_bytes(data_bits)
 
-    if version in rs_params:
-        expected_codewords, ecc_count = rs_params[version]
+    if version in constants.RS_PARAMS:
+        expected_codewords, ecc_count = constants.RS_PARAMS[version]
     else:
         return "Unsupported version for RS parameters."
 
