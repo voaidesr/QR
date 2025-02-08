@@ -2,7 +2,7 @@
 import tkinter as tk
 from tkinter import filedialog
 import cv2
-from PIL import Image, ImageTk 
+from PIL import Image, ImageTk
 from qr.encoder import generateQR
 from qr.decoder import full_decode, detect_and_draw_qr
 
@@ -19,7 +19,7 @@ class App(tk.Tk):
         self.button1 = tk.Button(self.topBar, text="Encode",
                         padx=5, pady=2, bg='white',
                         command=lambda: self.show_frame(self.encoderFrame))
-        self.button2 = tk.Button(self.topBar, text="Decode", 
+        self.button2 = tk.Button(self.topBar, text="Decode",
                         padx=5, pady=2, bg='white',
                         command=lambda: self.show_frame(self.decoderFrame))
         self.button1.pack(side='left')
@@ -27,13 +27,13 @@ class App(tk.Tk):
         self.topBar.pack(side="top", fill="x")
 
         self.encoder_frame()
-        self.decoder_frame()  
+        self.decoder_frame()
 
         self.current_frame = None
         self.show_frame(self.encoderFrame)
 
-        self.show_rectangle = True  
-        self.last_file = None  
+        self.show_rectangle = True
+        self.last_file = None
 
     def generate(self, text_string):
         info = generateQR(text_string)
@@ -104,23 +104,25 @@ class App(tk.Tk):
         self.strEntry.delete(0, tk.END)
         self.strEntry.insert(0, text)
         self.generate(text)
-    
-    def download_qr(text):
+
+    def download_qr(self):
         file_path = filedialog.asksaveasfilename(
-        defaultextension='.png',
-        filetypes=[
+            defaultextension='.png',
+            filetypes=[
             ('PNG files', '*.png'),
             ('JPEG files', '*.jpg'),
             ('All files', '*.*')
-        ],
-        title='Save QR Code As',
-        initialfile='qr_code.png'
-    )
-    
+            ],
+            title='Save QR Code As',
+            initialfile='qr_code.png'
+        )
+
         if file_path:
             try:
-                # Copy current QR code to selected location
+                # Copy current QR code to selected location 
+                # Set resolution as 250x250 because otherwise the morphological operations will not work
                 image = Image.open("./qr_code.png")
+                image = image.resize((250, 250))
                 image.save(file_path)
                 tk.messagebox.showinfo("Success", "QR Code saved successfully!")
             except Exception as e:
