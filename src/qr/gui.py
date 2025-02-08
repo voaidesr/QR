@@ -1,6 +1,9 @@
 import tkinter as tk
+from tkinter import filedialog
+import cv2
 from PIL import Image, ImageTk 
 from qr.encoder import generateQR
+from qr.decoder import full_decode, detect_and_draw_qr
 
 class App(tk.Tk):
     def __init__(self):
@@ -13,24 +16,28 @@ class App(tk.Tk):
         self.topBar = tk.Frame(self, bg="lightblue", width=600, height=45, bd=5, relief='ridge')
 
         self.button1 = tk.Button(self.topBar, text="Encode",
-                        padx=5, pady=2, bg='white',command=lambda: self.show_frame(self.encoderFrame))
-        
+                        padx=5, pady=2, bg='white',
+                        command=lambda: self.show_frame(self.encoderFrame))
         self.button2 = tk.Button(self.topBar, text="Decode", 
-                        padx=5, pady=2, bg='white', command=lambda: self.show_frame(self.decoderFrame))
-
+                        padx=5, pady=2, bg='white',
+                        command=lambda: self.show_frame(self.decoderFrame))
         self.button1.pack(side='left')
         self.button2.pack(side='right')
-
         self.topBar.pack(side="top", fill="x")
-        self.encoder_frame()    
+
+        self.encoder_frame()
+        self.decoder_frame()  
 
         self.current_frame = None
         self.show_frame(self.encoderFrame)
 
+        self.show_rectangle = True  
+        self.last_file = None  
+
     def generate(self, text_string):
         info = generateQR(text_string)
-        if info == None:
-            details_text = f'Sorry.Too many characters({len(text_string)})!\n Max nmb of characters is 27.\n'
+        if info is None:
+            details_text = f"Sorry. Too many characters ({len(text_string)})!\nMax number of characters is 27.\n"
             self.detailsLabel.config(text=details_text)
             return
 
@@ -45,16 +52,21 @@ class App(tk.Tk):
         self.qr_image_label.pack()
         self.qr_image_label.image = photo
 
-        details_text = f'QR Version: 2 \n Error Correction Level: M \n Characters entered: {len(text_string)}\n Applied Mask: {info['mask']}\n Mask Penalty: {info['mask-penalty']}'
+        details_text = (
+            f"QR Version: 2 \n"
+            f"Error Correction Level: M \n"
+            f"Characters entered: {len(text_string)}\n"
+            f"Applied Mask: {info['mask']}\n"
+            f"Mask Penalty: {info['mask-penalty']}"
+        )
         self.detailsLabel.config(text=details_text)
 
-        
     def encoder_frame(self):
         self.imageArea = tk.Frame(self.encoderFrame, bg='lightblue', bd=5, relief='ridge', width=500)
         self.userArea = tk.Frame(self.encoderFrame, bg='lightblue', bd=5, relief='ridge', width=500)
         self.infoArea = tk.Frame(self.userArea, bg='lightblue', bd=5, relief='ridge', height=300)
 
-        inputLabel = tk.Label(self.userArea, text = "Enter the string to encode:", font=("Arial", 12), bg='lightblue')
+        inputLabel = tk.Label(self.userArea, text="Enter the string to encode:", font=("Arial", 12), bg='lightblue')
         inputLabel.pack(pady=5, fill="x", padx=10)
 
         self.strEntry = tk.Entry(self.userArea, font=("Arial", 12))
@@ -81,10 +93,11 @@ class App(tk.Tk):
         self.infoArea.pack(side='bottom', fill='both', expand=False)
         self.userArea.pack(side="left", fill="both", expand=False)
         self.imageArea.pack(side="right", fill="both", expand=True)
+        self.encoderFrame.pack(fill="both", expand=True)
 
     def update_entry(self, text):
         self.strEntry.delete(0, tk.END)
-        self.strEntry.insert(0,text)
+        self.strEntry.insert(0, text)
         self.generate(text)
 
     def show_frame(self, frame):
@@ -93,6 +106,81 @@ class App(tk.Tk):
         self.current_frame = frame
         self.current_frame.pack(fill="both", expand=True)
 
+    def decoder_frame(self):
+        self.dec_sideFrame = tk.Frame(self.decoderFrame, bg='lightblue', bd=5, relief='ridge', width=200)
+        loadButton = tk.Button(self.dec_sideFrame, text="Load Image", font=("Arial", 12),
+                                command=self.load_image)
+        loadButton.pack(pady=5, padx=10, fill="x")
+        toggleRectButton = tk.Button(self.dec_sideFrame, text="Show/Hide QR Border", font=("Arial", 12),
+                                        command=self.toggle_rectangle)
+        toggleRectButton.pack(pady=5, padx=10, fill="x")
+        example1Button = tk.Button(self.dec_sideFrame, text="Team Name", font=("Arial", 12),
+                                    command=lambda: self.load_image("./res/team_name.jpg")) # trebuie sa punem
+        example1Button.pack(pady=5, padx=10, fill="x")
+        example2Button = tk.Button(self.dec_sideFrame, text="Course", font=("Arial", 12),
+                                    command=lambda: self.load_image("./res/course.jpg")) # trebuie sa punem
+        example2Button.pack(pady=5, padx=10, fill="x")
+        example3Button = tk.Button(self.dec_sideFrame, text="Edge detection 1", font=("Arial", 12),
+                                    command=lambda: self.load_image("./res/page.jpg"))
+        example3Button.pack(pady=5, padx=10, fill="x")
+        example4Button = tk.Button(self.dec_sideFrame, text="Edge detection 2", font=("Arial", 12),
+                                    command=lambda: self.load_image("./res/qr.png"))
+        example4Button.pack(pady=5, padx=10, fill="x")
+        self.dec_sideFrame.pack(side="left", fill="y")
+
+        self.dec_mainFrame = tk.Frame(self.decoderFrame, bg='lightblue', bd=5, relief='ridge')
+        self.dec_mainFrame.pack(side="right", fill="both", expand=True)
+
+        self.dec_imageArea = tk.Frame(self.dec_mainFrame, bg='lightblue', bd=5, relief='ridge')
+        self.dec_imageArea.pack(side="top", fill="both", expand=True)
+
+        self.dec_textFrame = tk.Frame(self.dec_mainFrame, bg='lightblue', bd=5, relief='ridge')
+        self.dec_textFrame.pack(side="top", fill="x")
+        infoLabel = tk.Label(self.dec_textFrame, text="Decoded Text:", font=("Arial", 12), bg='lightblue')
+        infoLabel.pack(pady=5)
+        self.decodedTextLabel = tk.Label(self.dec_textFrame, text="", font=("Arial", 14, "bold"), bg='yellow')
+        self.decodedTextLabel.pack(pady=5)
+
+
+    def load_image(self, file_path=None):
+        """
+        Opens a file dialog (or uses the provided file path), then detects the QR,
+        draws (or not) the QR border based on the toggle, decodes the text, and updates the GUI.
+        """
+        if file_path is None:
+            file_path = filedialog.askopenfilename(
+                filetypes=[("Image Files", ("*.png", "*.jpg", "*.jpeg", "*.bmp"))]
+            )
+        if not file_path:
+            return
+
+        self.last_file = file_path
+        roi, annotated = detect_and_draw_qr(file_path, draw_rectangle=self.show_rectangle)
+        if roi is None:
+            decoded_text = "No valid QR code detected."
+        else:
+            decoded_text = full_decode(roi)
+        self.decodedTextLabel.config(text=decoded_text)
+
+        annotated_rgb = cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB)
+        pil_image = Image.fromarray(annotated_rgb)
+        pil_image = pil_image.resize((550, 550))
+        photo = ImageTk.PhotoImage(pil_image)
+        for widget in self.dec_imageArea.winfo_children():
+            widget.destroy()
+        label = tk.Label(self.dec_imageArea, image=photo)
+        label.image = photo
+        label.pack()
+
+    def toggle_rectangle(self):
+        """Toggle the drawing of the QR border on/off and reload the image if one is loaded."""
+        self.show_rectangle = not self.show_rectangle
+        if self.last_file:
+            self.load_image(self.last_file)
+
 def main():
     app = App()
     app.mainloop()
+
+if __name__ == "__main__":
+    main()
