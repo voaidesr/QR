@@ -18,7 +18,7 @@ def encode(text: str) -> None:
 @click.argument("image_path")
 def decode(image_path: str) -> None:
     """Decode a QR code"""
-    qrCode = qr.decoder.find_qr_in_image(image_path)
+    qrCode = qr.decoder.find_qr_in_image(image_path)[0]
     print(qr.decoder.full_decode(qrCode))
 
 

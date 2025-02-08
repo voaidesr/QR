@@ -4,7 +4,7 @@ from tkinter import filedialog
 import cv2
 from PIL import Image, ImageTk
 from qr.encoder import generateQR
-from qr.decoder import full_decode, detect_and_draw_qr
+from qr.decoder import full_decode, find_qr_in_image
 
 class App(tk.Tk):
     def __init__(self):
@@ -183,7 +183,7 @@ class App(tk.Tk):
             return
 
         self.last_file = file_path
-        roi, annotated = detect_and_draw_qr(file_path, draw_rectangle=self.show_rectangle)
+        roi, annotated = find_qr_in_image(file_path, draw_rectangle=self.show_rectangle)
         if roi is None:
             decoded_text = "No valid QR code detected."
         else:

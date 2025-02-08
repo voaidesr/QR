@@ -5,7 +5,7 @@ from reedsolo import RSCodec, ReedSolomonError
 import qr.constants as constants
 
 # https://stackoverflow.com/questions/60359398/python-detect-a-qr-code-from-an-image-and-crop-using-opencv
-def find_qr_in_image(image_path: str) -> np.array:
+def find_qr_in_image(image_path: str, draw_rectangle: bool = False) -> tuple:
     """
     Detects and extracts the QR code from an image.
     Args:
@@ -74,53 +74,21 @@ def find_qr_in_image(image_path: str) -> np.array:
 
     for (x, y, w, h) in candidates:
         candidate_roi = gray[y:y+h, x:x+w]
-        cv2.rectangle(image, (x, y), (x + w, y + h), (36,255,12), 3)
+        # For debugging purposes
         # cv2.imshow('image', image)
         # cv2.imshow('thresh', thresh)
         # cv2.imshow('close', close)
         # cv2.imshow('candidate_roi', candidate_roi)
         # cv2.waitKey()
 
-        if detect_version(candidate_roi) is not None:
-            return candidate_roi
+        if detect_version(candidate_roi) is not None:            
+            if draw_rectangle:
+                cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 3)
+            return candidate_roi, image
     
     print("No QR code found.")
-    return None
+    return None, image
 
-# temporary
-# TODO: combine with what Matteo does 
-def detect_and_draw_qr(image_path: str, draw_rectangle: bool = False) -> tuple:
-    """
-    Detect the QR code in the image at image_path.
-    Returns a tuple (ROI, annotated_image). The ROI is the grayscale region
-    corresponding to the QR code; annotated_image is the original image with
-    a rectangle drawn around the detected QR.
-    """
-    image = cv2.imread(image_path)
-    original = image.copy()
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    blur = cv2.GaussianBlur(gray, (9,9), 0)
-    thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9, 9))
-    close = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=2)
-    cnts = cv2.findContours(close, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[0]
-    candidates = []
-    for c in cnts:
-        peri = cv2.arcLength(c, True)
-        approx = cv2.approxPolyDP(c, 0.04 * peri, True)
-        if len(approx) == 4:
-            x, y, w, h = cv2.boundingRect(approx)
-            area = cv2.contourArea(c)
-            ar = w / float(h)
-            if area > 1000 and (0.7 < ar < 1.4):
-                candidates.append((x, y, w, h))
-    for (x, y, w, h) in candidates:
-        candidate_roi = gray[y:y+h, x:x+w]
-        if detect_version(candidate_roi) is not None:
-            if draw_rectangle:
-                cv2.rectangle(original, (x, y), (x+w, y+h), (0,255,0), 3)
-            return candidate_roi, original
-    return None, original
 
 # Generalised resizing
 def rescale_to_grid(image: np.array, grid_size: int) -> np.array:
