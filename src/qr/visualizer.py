@@ -13,8 +13,8 @@ class QR_Visualizer:
     def __init__(self, qr: QR_base):
         self.qr = qr
 
-        self.qr_size: int = 25
-        self.img_size: int = 800
+        self.qr_size: int = 27
+        self.img_size: int = 864
         self.module_size: int = self.img_size // self.qr_size
 
         self.img: Image.Image = Image.new('RGB', (self.img_size, self.img_size), WHITE)
@@ -28,10 +28,13 @@ class QR_Visualizer:
 
     def write_image(self) -> None:
         matrix = self.qr.get_matrix()
-        for i in range(25):
-            for j in range(25):
+        for i in range(26):
+            for j in range(26):
+                self.fill_module(i, j, (255, 255, 255))
+        for i in range(1,26):
+            for j in range(1, 26):
                 color_map = {0: BLACK, 1: WHITE, 2: BLUE, 3: RED, 4: NEUTRAL}
-                color = color_map.get(matrix[i][j])
+                color = color_map.get(matrix[i-1][j-1])
                 self.fill_module(i, j, color)
 
     def show_image(self) -> None:

@@ -1,3 +1,4 @@
+
 import tkinter as tk
 from tkinter import filedialog
 import cv2
@@ -84,6 +85,10 @@ class App(tk.Tk):
                     text="Load ASC link", command=lambda: self.update_entry('cs.unibuc.ro/~crusu/asc/'))
         linkButton.pack(pady=5, fill="y", padx=10)
 
+        downloadButton = tk.Button(self.userArea, font=("Arial", 12),
+                    text="Download QR code", command=lambda: self.download_qr())
+        downloadButton.pack(pady=5, fill="y", padx=10)
+
         infoLabel = tk.Label(self.infoArea, text = "Information:", font=("Arial", 12), bg='lightblue')
         infoLabel.pack()
 
@@ -99,6 +104,27 @@ class App(tk.Tk):
         self.strEntry.delete(0, tk.END)
         self.strEntry.insert(0, text)
         self.generate(text)
+    
+    def download_qr(text):
+        file_path = filedialog.asksaveasfilename(
+        defaultextension='.png',
+        filetypes=[
+            ('PNG files', '*.png'),
+            ('JPEG files', '*.jpg'),
+            ('All files', '*.*')
+        ],
+        title='Save QR Code As',
+        initialfile='qr_code.png'
+    )
+    
+        if file_path:
+            try:
+                # Copy current QR code to selected location
+                image = Image.open("./qr_code.png")
+                image.save(file_path)
+                tk.messagebox.showinfo("Success", "QR Code saved successfully!")
+            except Exception as e:
+                tk.messagebox.showerror("Error", f"Failed to save QR code: {str(e)}")
 
     def show_frame(self, frame):
         if self.current_frame:
