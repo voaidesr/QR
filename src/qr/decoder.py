@@ -56,11 +56,10 @@ def find_qr_in_image(image_path: str, draw_rectangle: bool = False) -> tuple:
 
     # Iterates through the detected contours.
     for c in cnts:
-        # Computes the perimeter of each contour.
-        peri = cv2.arcLength(c, True)
-
-        # Approximates the contour shape, reducing unnecessary points.
-        approx = cv2.approxPolyDP(c, 0.04 * peri, True)
+        # Use cv2.minAreaRect and cv2.boxPoints to get a tight rectangle with exactly 4 corner points.
+        rect = cv2.minAreaRect(c)
+        approx = cv2.boxPoints(rect)
+        approx = np.int64(approx)
 
         # Extracts the bounding box
         if len(approx) == 4:
@@ -69,23 +68,19 @@ def find_qr_in_image(image_path: str, draw_rectangle: bool = False) -> tuple:
             ar = w / float(h)
 
             # possible qr codes
-            if area > 1000 and (0.7 < ar < 1.4):
-                candidates.append((x, y, w, h))
+            if area <= 1000 or (ar < 0.7 or ar > 1.4):
+                continue
+
+            candidates.append((x, y, w, h))
 
     for (x, y, w, h) in candidates:
         candidate_roi = gray[y:y+h, x:x+w]
-        # For debugging purposes
-        # cv2.imshow('image', image)
-        # cv2.imshow('thresh', thresh)
-        # cv2.imshow('close', close)
-        # cv2.imshow('candidate_roi', candidate_roi)
-        # cv2.waitKey()
 
-        if detect_version(candidate_roi) is not None:            
+        if detect_version(candidate_roi) is not None:
             if draw_rectangle:
                 cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 3)
             return candidate_roi, image
-    
+
     print("No QR code found.")
     return None, image
 
