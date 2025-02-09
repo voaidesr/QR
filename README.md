@@ -53,6 +53,10 @@ When working on this project we chose to split the work in two equal parts: enco
 **The encoding interface.** The user can generate a QR of any text they wish, within the limit of characters.  
 At the bottom left there are visible some of the important details regarding the QR code.  
 
+<p align = "center" >
+    <img src = "./src/qr/res/dec_inter.png">
+</p>
+
 ![Screenshot from 2025-02-03 17-10-16](https://github.com/user-attachments/assets/a245dee3-b46f-4b80-8245-a45cafebadad)
 
 **The decoding interface** The user can upload an image or choose from one of the preset image to see the work of the decoder.  
