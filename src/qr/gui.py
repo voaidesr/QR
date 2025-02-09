@@ -5,6 +5,8 @@ import cv2
 from PIL import Image, ImageTk
 from qr.encoder import generateQR
 from qr.decoder import full_decode, find_qr_in_image
+import qr.constants as constants
+import os
 
 class App(tk.Tk):
     def __init__(self):
@@ -45,7 +47,7 @@ class App(tk.Tk):
         for widget in self.imageArea.winfo_children():
             widget.destroy()
 
-        image = Image.open("./qr_code.png")
+        image = Image.open(os.path.join(constants.PROJECT_ROOT,'src', 'qr', 'qr_code.png'))
         image = image.resize((550, 550))
         photo = ImageTk.PhotoImage(image)
 
@@ -78,7 +80,7 @@ class App(tk.Tk):
         generateButton.pack(pady=5, fill="y", padx=10)
 
         teamNameButton = tk.Button(self.userArea, font=("Arial", 12),
-                    text="Load Team Name", command=lambda: self.update_entry('Team Name'))
+                    text="Load Team Name", command=lambda: self.update_entry('Get Muxed'))
         teamNameButton.pack(pady=5, fill="y", padx=10)
 
         linkButton = tk.Button(self.userArea, font=("Arial", 12),
@@ -121,7 +123,7 @@ class App(tk.Tk):
             try:
                 # Copy current QR code to selected location 
                 # Set resolution as 250x250 because otherwise the morphological operations will not work
-                image = Image.open("./qr_code.png")
+                image = Image.open(os.path.join(constants.PROJECT_ROOT,'src', 'qr', 'qr_code.png'))
                 image = image.resize((250, 250))
                 image.save(file_path)
                 tk.messagebox.showinfo("Success", "QR Code saved successfully!")
@@ -142,17 +144,17 @@ class App(tk.Tk):
         toggleRectButton = tk.Button(self.dec_sideFrame, text="Show/Hide QR Border", font=("Arial", 12),
                                         command=self.toggle_rectangle)
         toggleRectButton.pack(pady=5, padx=10, fill="x")
-        example1Button = tk.Button(self.dec_sideFrame, text="Team Name", font=("Arial", 12),
-                                    command=lambda: self.load_image("./res/team_name.jpg")) # trebuie sa punem
+        example1Button = tk.Button(self.dec_sideFrame, text="Load Team Name", font=("Arial", 12),
+                                    command=lambda: self.load_image(os.path.join(constants.PROJECT_ROOT, 'src', 'qr', 'res', 'team_name.png')))
         example1Button.pack(pady=5, padx=10, fill="x")
-        example2Button = tk.Button(self.dec_sideFrame, text="Course", font=("Arial", 12),
-                                    command=lambda: self.load_image("./res/course.jpg")) # trebuie sa punem
+        example2Button = tk.Button(self.dec_sideFrame, text="Load ASC", font=("Arial", 12),
+                                    command=lambda: self.load_image(os.path.join(constants.PROJECT_ROOT, 'src', 'qr', 'res', 'asc.png'))) 
         example2Button.pack(pady=5, padx=10, fill="x")
-        example3Button = tk.Button(self.dec_sideFrame, text="Edge detection 1", font=("Arial", 12),
-                                    command=lambda: self.load_image("./res/page.jpg"))
+        example3Button = tk.Button(self.dec_sideFrame, text="Load edge detection example (1)", font=("Arial", 12),
+                                    command=lambda: self.load_image(os.path.join(constants.PROJECT_ROOT, 'src', 'qr', 'res', 'page.jpg')))
         example3Button.pack(pady=5, padx=10, fill="x")
-        example4Button = tk.Button(self.dec_sideFrame, text="Edge detection 2", font=("Arial", 12),
-                                    command=lambda: self.load_image("./res/qr.png"))
+        example4Button = tk.Button(self.dec_sideFrame, text="Load edge detection example (2)", font=("Arial", 12),
+                                    command=lambda: self.load_image(os.path.join(constants.PROJECT_ROOT, 'src', 'qr', 'res', 'qr.png')))
         example4Button.pack(pady=5, padx=10, fill="x")
         self.dec_sideFrame.pack(side="left", fill="y")
 
