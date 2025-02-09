@@ -23,6 +23,9 @@ def gf_mult(x: int, y: int, field_size: int = 256) -> int:
         return 0
     return gf_exp[(gf_log[x] + gf_log[y]) % (field_size - 1)]
 
+# I wanted to multiply two polynomials using FFT (actually NTT)
+# Then I realized I'm coding in Python so efficiency is worthless
+# (Actually I just ran into issues with GF and radix 2 FFT)
 def gf_poly_mult(p1: np.ndarray, p2: np.ndarray) -> np.ndarray:
     res = np.zeros(len(p1) + len(p2) - 1, dtype=int)
     for i in range(len(p1)):
