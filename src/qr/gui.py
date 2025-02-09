@@ -40,7 +40,7 @@ class App(tk.Tk):
     def generate(self, text_string):
         info = generateQR(text_string)
         if info is None:
-            details_text = f"Sorry. Too many characters ({len(text_string)})!\nMax number of characters is 27.\n"
+            details_text = f"Sorry. Too many characters ({len(text_string)})!\nMax number of characters is 26.\n"
             self.detailsLabel.config(text=details_text)
             return
 
