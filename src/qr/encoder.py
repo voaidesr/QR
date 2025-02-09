@@ -1,6 +1,8 @@
 from qr.visualizer import QR_Visualizer
 from qr.builder import QRCodeBuilder
+import qr.constants as constants
 import qr.poly as poly
+import os
 
 #class for encoding data
 class Encoder:
@@ -90,7 +92,7 @@ def encode_text(text: str) -> None:
     base.apply_best_mask()
     print(interface.qr_to_terminal())
     
-    interface.save_image()
+    interface.save_image(path=os.path.join(constants.PROJECT_ROOT,'src', 'qr'))
     print('QR Code saved as qr.png')
 
 
@@ -106,7 +108,7 @@ def generateQR(text: str) ->None:
     mask = base.apply_best_mask()
 
     interface = QR_Visualizer(base)
-    interface.save_image()
+    interface.save_image(path=os.path.join(constants.PROJECT_ROOT,'src', 'qr'))
 
     res = {}
     res['mask'] = mask[0]
