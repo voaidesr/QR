@@ -1,3 +1,8 @@
+import os 
+
+# Project root (for file paths)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 # RS parameters for error correction level L, versions 1-3
 RS_PARAMS = {
     1: (26, 7),
@@ -29,3 +34,15 @@ BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
 RED = (255, 0, 0)
 NEUTRAL = (60, 60, 60)
+
+# Mask conditions
+MASK_CONDITIONS = {
+        0: lambda i, j: (i + j) % 2 == 0,
+        1: lambda i, j: i % 2 == 0,
+        2: lambda i, j: j % 3 == 0,
+        3: lambda i, j: (i + j) % 3 == 0,
+        4: lambda i, j: ((i // 2 + j // 3) % 2) == 0,
+        5: lambda i, j: (((i * j) % 2) + ((i * j) % 3)) == 0,
+        6: lambda i, j: ((((i * j) % 2) + ((i * j) % 3)) % 2) == 0,
+        7: lambda i, j: ((((i + j) % 2) + ((i * j) % 3)) % 2) == 0,
+}
