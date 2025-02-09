@@ -35,9 +35,10 @@ class QR_Visualizer:
         self.write_image()
         self.img.show()
 
-    def save_image(self, filename: str = 'qr_code.png', format: str = 'PNG') -> None:
+    def save_image(self, filename: str = 'qr_code.png', format: str = 'PNG', path: str = '.') -> None:
         self.write_image()
-        self.img.save(filename, format=format)
+        full_path = f"{path}/{filename}"
+        self.img.save(full_path, format=format)
 
     def qr_to_terminal(self) -> str:
         matrix = np.array(self.qr.get_matrix())
