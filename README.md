@@ -43,6 +43,10 @@ poetry run qr gui
     - The encoder uses *Reed-Solomon* error correction. The Reed-Solomon error correction uses polynomial divisions with polynomials that have coeficients in a *Galois Field* (GF256). Our algorithm generates the tables with values for exponents and logarithms of galois field numbers and uses the tables when doing the polynomial division.
     - The Reed-Solomon error correction algorithm makes use of a *generator polynomial*. The generator polynomial could be hardcoded, because it depends on the number of ecc codewords our QR requires (which is fixed), but our algorithm generates the polynomial recursively.
     - The QR code standard specifies *8 masks* that can be applied to the qr code. A mask is an operation that can be applied to the code in pursuit of making it better for interpretation and scanning. Depending on the mask number, there occurs a transformation on the matrix and then the new code is given a penalty score. Our encoder does this as well, it evaluates every mask and determines the *best one*.
+3. Resources
+   - A great resource and aid during this project was: Thonky's QR Code Tutorial (https://www.thonky.com/qr-code-tutorial/).
+   - Another great tool was the step-by-step QR code creator (https://www.nayuki.io/page/creating-a-qr-code-step-by-step). This enabled us to find our mistakes and debug the application easily.
+   - Another sources include the wikipedia articles on QR codes (https://en.wikipedia.org/wiki/QR_code) and Reed-Solomon Error Correction (https://en.wikipedia.org/wiki/Reed%E2%80%93Solomon_error_correction)
 
 ### Decoder
 1. Team members:
