@@ -12,10 +12,10 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("QR Code Encoder/Decoder GUI")
-        self.geometry("1000x665")
+        self.geometry("1000x800")
 
-        self.encoderFrame = tk.Frame(self, bg="lightblue", width=1000, height=600)
-        self.decoderFrame = tk.Frame(self, bg="lightblue", width=1000, height=600)
+        self.encoderFrame = tk.Frame(self, bg="lightblue", width=1000, height=800)
+        self.decoderFrame = tk.Frame(self, bg="lightblue", width=1000, height=800)
         self.topBar = tk.Frame(self, bg="lightblue", width=600, height=45, bd=5, relief='ridge')
 
         self.button1 = tk.Button(self.topBar, text="Encode",
@@ -137,7 +137,7 @@ class App(tk.Tk):
         self.current_frame.pack(fill="both", expand=True)
 
     def decoder_frame(self):
-        self.dec_sideFrame = tk.Frame(self.decoderFrame, bg='lightblue', bd=5, relief='ridge', width=200)
+        self.dec_sideFrame = tk.Frame(self.decoderFrame, bg='lightblue', bd=5, relief='ridge', width=250)
         loadButton = tk.Button(self.dec_sideFrame, text="Load Image", font=("Arial", 12),
                                 command=self.load_image)
         loadButton.pack(pady=5, padx=10, fill="x")
