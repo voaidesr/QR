@@ -51,7 +51,7 @@ poetry run qr gui
 3. Details:
    - decode
 ### GUI
-Details about the UI of our application:
+1. Details about the UI of our application:
     - In the encoder section, you can write your own data string and generate a qr code with it. We have also included some buttons to easily load our team name and the ASC course website link.
     - In the decoder section, you can upload an image of a qr code and the decoder will get the data it contains. There is also the option to check the image recognition part of the algorithm.
 
