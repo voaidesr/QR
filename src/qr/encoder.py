@@ -1,79 +1,28 @@
 from qr.visualizer import QR_Visualizer
 from qr.builder import QRCodeBuilder
+import qr.poly as poly
 
 #class for encoding data
 class Encoder:
-    def __init__(self, message):
+    def __init__(self, message: str) -> None:
         self.message = message
 
-        #tables for galois-field
-        self.gf_exp, self.gf_log = [], []
-
-        #max no. of data bits for our specification(2.M) = 28, 28*4=224
+        # max no. of data bits for our specification(2.M) = 28, 28*4=224
         self.max_data_bits = 224
 
-    def create_gf_tables(self):
-        #Fill the gf tables for exp and log
-        self.gf_exp = [1] * 512
-        self.gf_log = [0] * 256
-        x = 1
-        for i in range(255):
-            self.gf_exp[i] = x
-            self.gf_log[x] = i
-            x <<= 1
-            if x & 0x100:
-                x ^= 0x11d
-
-        for i in range(255, 512):
-            self.gf_exp[i] = self.gf_exp[i - 255]
-
-    def gf_mult(self, x, y, field_size=256):
-        if x == 0 or y == 0:
-            return 0
-        return self.gf_exp[(self.gf_log[x] + self.gf_log[y]) % (field_size - 1)]
-
-    def gf_poly_mult(self, p1, p2):
-        #Multiply two gf polynomials
-        res = [0] * (len(p1) + len(p2) - 1)
-        for i in range(len(p1)):
-            for j in range(len(p2)):
-                res[i + j] ^= self.gf_mult(p1[i], p2[j])
-        return res
-
-    def gf_poly_gen(self, degree):
-        #Generate the generator polynomial
-        gen = [1]
-        for i in range(degree):
-            gen = self.gf_poly_mult(gen, [1, self.gf_exp[i]])
-        return gen
-
-    def gf_poly_div(self, dividend, divisor):
-        #Performs polynomial division in GF(2^8). Returns quotient and remainder.
-        msg_out = list(dividend)
-        divisor_degree = len(divisor) - 1
-
-        for i in range(len(dividend) - divisor_degree):
-            coef = msg_out[i]
-            if coef != 0:
-                for j in range(len(divisor)):
-                    msg_out[i + j] ^= self.gf_mult(divisor[j], coef)
-
-        remainder = msg_out[-divisor_degree:]
-        return remainder
-
-    def generate_ecc(self):
-        #For our specification(2.M), we have 16 ECC codewords
-        self.create_gf_tables()
-        generator_polynomial = self.gf_poly_gen(16)
+    def generate_ecc(self) -> str:
+        # For our specification(2.M), we have 16 ECC codewords
+        poly.create_gf_tables()
+        generator_polynomial = poly.gf_poly_gen(16)
 
         message = self.encode_data_string()
         message_polynomial = []
-        for i in range(0, len(message)-7, 8):
-            bin_codeword = message[i:i+8]
+        for i in range(0, len(message) - 7, 8):
+            bin_codeword = message[i:i + 8]
             coef = int(bin_codeword, 2)
             message_polynomial.append(coef)
 
-        ecc = self.gf_poly_div(message_polynomial + [0]*(len(generator_polynomial)-1), generator_polynomial)
+        ecc = poly.gf_poly_div(message_polynomial + [0] * (len(generator_polynomial) - 1), generator_polynomial)
         ecc_bits = ''
 
         for nmb in ecc:
@@ -85,7 +34,7 @@ class Encoder:
 
     def encode_data_string(self) -> str:
         encoded = ''
-        #mode: binary
+        # mode: binary
         mode = '0100'
 
         #size of message
