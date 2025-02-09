@@ -10,8 +10,7 @@ class QRCodeBuilder:
         self.fill_finder_patterns()
 
     def fill_finder_patterns(self) -> None:
-        project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        f = open(os.path.join(project_root, 'src', 'qr', 'res', 'function_patterns.txt'))
+        f = open(os.path.join(constants.PROJECT_ROOT, 'src', 'qr', 'res', 'function_patterns.txt'))
         i = 0
         for line in f.readlines():
             j = 0
@@ -91,160 +90,25 @@ class QRCodeBuilder:
             group_idx += 1
 
     def apply_mask(self, mask_idx:int) -> None:
-        if mask_idx == 0:
-            self.mask0()
-        elif mask_idx == 1:
-            self.mask1()
-        elif mask_idx == 2:
-            self.mask2()
-        elif mask_idx == 3:
-            self.mask3()
-        elif mask_idx == 4:
-            self.mask4()
-        elif mask_idx == 5:
-            self.mask5()
-        elif mask_idx == 6:
-            self.mask6()
-        elif mask_idx == 7:
-            self.mask7()
-
+        if mask_idx in range(8):
+            self.mask(mask_idx)
         self.apply_format_info(constants.FORMAT_STRING[mask_idx])
 
-
-    def mask0(self)-> None:
-            a = np.zeros((25,25), dtype=int)
-            f = open('./res/function_patterns.txt')
-            i = 0
-            for line in f.readlines():
-                j = 0
-                for val in line.split():
-                    a[i,j] = int(val)
-                    j += 1
-                i += 1
-            # Iterate through matrix
-            for i in range(self.qr_matrix.shape[0]):
-                for j in range(self.qr_matrix.shape[1]):
-                    if self.qr_matrix[i,j] in [0,1] and (i + j) % 2 == 0 and a[i,j] == 4:
+    def mask(self, mask_number: int) -> None:
+        a = np.zeros((25,25), dtype=int)
+        f = open(os.path.join(constants.PROJECT_ROOT, 'src', 'qr', 'res', 'function_patterns.txt'))
+        i = 0
+        for line in f.readlines():
+            j = 0
+            for val in line.split():
+                a[i,j] = int(val)
+                j += 1
+            i += 1
+        # Iterate through matrix
+        for i in range(self.qr_matrix.shape[0]):
+            for j in range(self.qr_matrix.shape[1]):
+                if self.qr_matrix[i,j] in [0,1] and constants.MASK_CONDITIONS[mask_number](i,j) and a[i,j] == 4:
                         self.qr_matrix[i,j] = 1 - self.qr_matrix[i,j]
-
-    def mask1(self)-> None:
-        a = np.zeros((25,25), dtype=int)
-        f = open('./res/function_patterns.txt')
-        i = 0
-        for line in f.readlines():
-            j = 0
-            for val in line.split():
-                a[i,j] = int(val)
-                j += 1
-            i += 1
-            # Iterate through matrix
-        for i in range(self.qr_matrix.shape[0]):
-            for j in range(self.qr_matrix.shape[1]):
-                if self.qr_matrix[i,j] in [0,1] and i % 2 == 0 and a[i,j] == 4:
-                    self.qr_matrix[i,j] = 1 - self.qr_matrix[i,j]
-
-
-    def mask2(self)-> None:
-        a = np.zeros((25,25), dtype=int)
-        f = open('./res/function_patterns.txt')
-        i = 0
-        for line in f.readlines():
-            j = 0
-            for val in line.split():
-                a[i,j] = int(val)
-                j += 1
-            i += 1
-            # Iterate through matrix
-        for i in range(self.qr_matrix.shape[0]):
-            for j in range(self.qr_matrix.shape[1]):
-                if self.qr_matrix[i,j] in [0,1] and j % 3 == 0 and a[i,j] == 4:
-                    self.qr_matrix[i,j] = 1 - self.qr_matrix[i,j]
-
-
-    def mask3(self)-> None:
-        a = np.zeros((25,25), dtype=int)
-        f = open('./res/function_patterns.txt')
-        i = 0
-        for line in f.readlines():
-            j = 0
-            for val in line.split():
-                a[i,j] = int(val)
-                j += 1
-            i += 1
-            # Iterate through matrix
-        for i in range(self.qr_matrix.shape[0]):
-            for j in range(self.qr_matrix.shape[1]):
-                if self.qr_matrix[i,j] in [0,1] and (i+j) % 3 == 0 and a[i,j] == 4:
-                    self.qr_matrix[i,j] = 1 - self.qr_matrix[i,j]
-
-
-    def mask4(self)-> None:
-        a = np.zeros((25,25), dtype=int)
-        f = open('./res/function_patterns.txt')
-        i = 0
-        for line in f.readlines():
-            j = 0
-            for val in line.split():
-                a[i,j] = int(val)
-                j += 1
-            i += 1
-            # Iterate through matrix
-        for i in range(self.qr_matrix.shape[0]):
-            for j in range(self.qr_matrix.shape[1]):
-                if self.qr_matrix[i,j] in [0,1] and ((int(i/2) + int(j/3)) % 2) == 0 and a[i,j] == 4:
-                    self.qr_matrix[i,j] = 1 - self.qr_matrix[i,j]
-
-
-    def mask5(self)-> None:
-        a = np.zeros((25,25), dtype=int)
-        f = open('./res/function_patterns.txt')
-        i = 0
-        for line in f.readlines():
-            j = 0
-            for val in line.split():
-                a[i,j] = int(val)
-                j += 1
-            i += 1
-            # Iterate through matrix
-        for i in range(self.qr_matrix.shape[0]):
-            for j in range(self.qr_matrix.shape[1]):
-                if self.qr_matrix[i,j] in [0,1] and (((i*j) % 2) + ((i*j) % 3)) == 0 and a[i,j] == 4:
-                    self.qr_matrix[i,j] = 1 - self.qr_matrix[i,j]
-
-
-    def mask6(self)-> None:
-        a = np.zeros((25,25), dtype=int)
-        f = open('./res/function_patterns.txt')
-        i = 0
-        for line in f.readlines():
-            j = 0
-            for val in line.split():
-                a[i,j] = int(val)
-                j += 1
-            i += 1
-            # Iterate through matrix
-        for i in range(self.qr_matrix.shape[0]):
-            for j in range(self.qr_matrix.shape[1]):
-                if self.qr_matrix[i,j] in [0,1] and ((((i*j) % 2) + ((i*j) % 3))%2) == 0 and a[i,j] == 4:
-                    self.qr_matrix[i,j] = 1 - self.qr_matrix[i,j]
-
-
-    def mask7(self)-> None:
-        a = np.zeros((25,25), dtype=int)
-        f = open('./res/function_patterns.txt')
-        i = 0
-        for line in f.readlines():
-            j = 0
-            for val in line.split():
-                a[i,j] = int(val)
-                j += 1
-            i += 1
-            # Iterate through matrix
-        for i in range(self.qr_matrix.shape[0]):
-            for j in range(self.qr_matrix.shape[1]):
-                if self.qr_matrix[i,j] in [0,1] and ((((i+j) % 2) + ((i*j) % 3)) % 2) == 0 and a[i,j] == 4:
-                    self.qr_matrix[i,j] = 1 - self.qr_matrix[i,j]
-
 
     def apply_format_info(self, format_string: str) -> None:
         if len(format_string) != 15:
