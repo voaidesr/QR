@@ -1,5 +1,6 @@
 from PIL import Image
 from qr.builder import QRCodeBuilder
+import numpy as np
 import qr.constants as constants
 
 class QR_Visualizer:
@@ -37,3 +38,18 @@ class QR_Visualizer:
     def save_image(self, filename: str = 'qr_code.png', format: str = 'PNG') -> None:
         self.write_image()
         self.img.save(filename, format=format)
+
+    def qr_to_terminal(self) -> str:
+        matrix = np.array(self.qr.get_matrix())
+        quiet_zone = 1
+
+        # Pad the matrix using numpy.pad to add a quiet zone
+        padded_matrix = np.pad(matrix, pad_width=quiet_zone, mode='constant', constant_values=1)
+
+        # Build the string representation
+        # Each cell is mapped to a block: '██' if non-zero, else '  '
+        result_lines = []
+        for row in padded_matrix:
+            line = ''.join('██' if cell else '  ' for cell in row)
+            result_lines.append(line)
+        return '\n'.join(result_lines)

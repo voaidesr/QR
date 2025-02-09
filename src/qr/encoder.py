@@ -88,7 +88,10 @@ def encode_text(text: str) -> None:
     interface = QR_Visualizer(base)
 
     base.apply_best_mask()
+    print(interface.qr_to_terminal())
+    
     interface.save_image()
+    print('QR Code saved as qr.png')
 
 
 def generateQR(text: str) ->None:
