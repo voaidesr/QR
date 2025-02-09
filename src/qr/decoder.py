@@ -171,7 +171,6 @@ def extract_format_info(matrix: np.array) -> dict:
 def mask_condition(i: int, j: int, mask_pattern: int) -> bool:
     # Return True if the mask condition is met for the given mask pattern
     # taken from here https://commons.wikimedia.org/wiki/File:QR_Code_Mask_Patterns.svg
-    # TODO: change to switch statement
     if mask_pattern in range(8):
         return constants.MASK_CONDITIONS[mask_pattern](i, j)
     return False
