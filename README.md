@@ -1,7 +1,5 @@
 # QR code encoder/decoder
 
----
-
 ## Project description
 
 When working on this project we chose to split the work in two equal parts: encoder and decoder.
@@ -41,12 +39,10 @@ When working on this project we chose to split the work in two equal parts: enco
     - In the encoder section, you can write your own data string and generate a qr code with it. We have also included some buttons to easily load our team name and the ASC course website link.
     - In the decoder section, you can upload an image of a qr code and the decoder will get the data it contains. There is also the option to check the image recognition part of the algorithm.
 
----
 
 ## Preview
 ![Screenshot from 2025-02-03 17-10-16](https://github.com/user-attachments/assets/a245dee3-b46f-4b80-8245-a45cafebadad)
 
----
 
 ## Setup
 This project follows a structured setup using *Poetry* for dependency management and virtual environment handling.
