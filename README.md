@@ -1,5 +1,15 @@
 # QR code encoder/decoder
 
+## Team:
+Get Muxed  
+  
+Members:
+- Robu Petru Razvan, 152
+- Aioanei Florin, 151
+- Verzotti Matteo, 151
+- Voaides-Negustor Robert, 151
+
+
 ## Project description
 
 When working on this project we chose to split the work in two equal parts: encoder and decoder.
@@ -19,7 +29,7 @@ When working on this project we chose to split the work in two equal parts: enco
 
 ### Decoder
 1. Team members:
-   - Decoder Team: **Verzzotti Matteo** and **Voaides-Negustor Robert**
+   - Decoder Team: **Verzotti Matteo** and **Voaides-Negustor Robert**
 2. Details:
    - Used the *OpenCV* library (cv2) for image preprocessing, edge detection, and QR code isolation. The decoder applies multiple image processing techniques:
         - *Edge Detection*: Detects sharp transitions in pixel intensity to outline the QR code. This helps in separating the QR from the background, even in noisy images.
