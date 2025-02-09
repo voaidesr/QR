@@ -1,7 +1,6 @@
 # QR code encoder/decoder
 
-## Team:
-Get Muxed  
+Team: **Get Muxed** 
   
 Members:
 - Robu Petru Razvan, 152
@@ -91,6 +90,9 @@ Decode a QR Code:
 poetry run qr decode  [path_to_QR]
 ```  
 This receives a path to an image which the program tries to decode. If it is not a QR code, the program will return an error, otherwise, the text that has been decoded from the QR will be shown in the terminal.  
+
+While our QR decoding system performs reliably within standard resolutions, it encounters challenges when handling high-resolution QR codes exceeding 300x300 pixels, as extremely high-definition images introduce complexities beyond its current scope.  
+
 
 Run the GUI Application:
 ```bash
