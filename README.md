@@ -72,9 +72,10 @@ Alternatively, you can install Poetry using the following command:
 curl -sSL https://install.python-poetry.org | python3 -
 ```  
 ### Running Prerequisites
-Before running the project, ensure you have the following installed:
-- Python 3.8 or higher
-- Poetry (see installation guide above)  
+> [!IMPORTANT]
+> Before running the project, ensure you have the following installed:
+> - Python 3.8 or higher
+> - Poetry (see installation guide above)  
 
 Navigate to the project directory and install the required dependencies:
 ```bash
