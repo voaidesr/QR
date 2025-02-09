@@ -93,7 +93,7 @@ def encode_text(text: str) -> None:
     print(interface.qr_to_terminal())
     
     interface.save_image(path=os.path.join(constants.PROJECT_ROOT,'src', 'qr'))
-    print('QR Code saved as qr.png')
+    print('QR Code saved as qr_code.png')
 
 
 def generateQR(text: str) ->None:
